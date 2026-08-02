@@ -1,0 +1,161 @@
+/* Pretendard 폰트는 layout.tsx 의 <link> 로 로드 (Toss 동일 패밀리) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --safe-bottom: env(safe-area-inset-bottom);
+
+  /* 라이트 테마 색 (rgb 채널) */
+  --c-bg: 255 255 255;
+  --c-card: 255 255 255;
+  --c-surface: 242 244 246;
+  --c-surface2: 232 235 238;
+  --c-ink: 25 31 40;
+  --c-sub: 78 89 104;
+  --c-muted: 139 149 161;
+  --c-faint: 176 184 193;
+  --c-line: 229 232 235;
+  --c-toss-50: 238 245 255;
+  --c-toss-700: 20 86 186;
+  --c-warnBg: 255 249 219;
+}
+
+html.dark {
+  color-scheme: dark;
+  /* 다크 테마 (토스 다크 스타일) */
+  --c-bg: 18 19 23;        /* 페이지 배경 (가장 어두움) */
+  --c-card: 30 32 38;      /* 카드 (페이지보다 밝게 → 분리) */
+  --c-surface: 38 41 48;   /* 보조 표면 */
+  --c-surface2: 50 54 63;
+  --c-ink: 237 239 242;    /* 본문 */
+  --c-sub: 169 176 186;
+  --c-muted: 130 138 148;
+  --c-faint: 92 99 108;
+  --c-line: 47 51 59;
+  --c-toss-50: 22 40 66;   /* 어두운 블루 틴트 */
+  --c-toss-700: 132 182 252;  /* 다크에선 밝은 블루 텍스트 */
+  --c-warnBg: 47 41 20;    /* 어두운 옐로 틴트 */
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: rgb(var(--c-bg));
+  color: rgb(var(--c-ink));
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+    system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-feature-settings: "tnum" 1;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* 토스 스타일 스크롤바 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-faint));
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-muted));
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* 숫자 등폭(tabular-nums) — 가격/등락률 흔들림 방지 */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 공통 컴포넌트 */
+@layer components {
+  .card {
+    @apply rounded-card bg-card p-5 shadow-card;
+    transition: box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease;
+  }
+  .card-hover {
+    @apply hover:shadow-cardHover;
+  }
+  .card-surface {
+    @apply rounded-card bg-surface p-5;
+    transition: background-color 200ms ease;
+  }
+  .btn-primary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-toss px-5 text-base font-bold text-white transition-all hover:bg-toss-600 active:bg-toss-700 active:scale-[0.97];
+  }
+  .btn-secondary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-surface px-5 text-base font-semibold text-ink transition-all hover:bg-surface2 active:scale-[0.97];
+  }
+  .btn-ghost {
+    @apply inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-sub transition-all hover:bg-surface hover:text-ink active:scale-[0.97];
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold;
+  }
+  .field {
+    @apply h-12 w-full rounded-xl bg-surface px-4 text-base text-ink placeholder:text-faint outline-none transition-all focus:bg-card focus:ring-2 focus:ring-toss/50;
+  }
+  .metric-label {
+    @apply text-sm font-medium text-sub;
+  }
+  .metric-value {
+    @apply mt-1 text-title font-bold tracking-tight text-ink tabular;
+  }
+}
+
+/* 페이지 전환 진입 */
+.page-enter {
+  animation: page-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 메인 분석 카드 stagger 진입 */
+.stagger > * {
+  animation: card-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(n+7) { animation-delay: 240ms; }
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 모션 줄이기 선호 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *, .page-enter, .stagger > * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
