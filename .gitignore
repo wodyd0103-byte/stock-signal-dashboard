@@ -3,36 +3,38 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
-*.db
 
 # Node / Next.js
-frontend/node_modules/
-frontend/.next/
+node_modules/
+.next/
 frontend/out/
+*.tsbuildinfo
 
 # Environment
 .env
 .env.local
-backend/.env
-frontend/.env.local
+.env.*.local
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Build / cache artifacts
+.tmp/
+backend/.tmp/
+backend/data/cache/
+
+# Streamlit local creds (any depth)
+**/.streamlit/credentials.toml
 
 # OS / editor
 .DS_Store
-Thumbs.db
 .vscode/
 .idea/
-*.log
-.tmp/
-backend/.tmp/
 
-# Streamlit local creds
-.streamlit/credentials.toml
-
-# Node
-node_modules/
-.next/
-
-# Build/cache artifacts
-backend/data/cache/
-frontend/tsconfig.tsbuildinfo
+# Claude Code local settings
 .claude/settings.local.json
