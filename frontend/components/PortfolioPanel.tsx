@@ -96,6 +96,9 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
     }
   }
 
+  // 마운트 시 보유 종목 로드. load()의 동기 setLoading(true) 때문에 규칙에 걸린다.
+  // TanStack Query 도입 시 제거 예정.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, []);
 
   async function submit(e: FormEvent) {

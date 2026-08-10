@@ -42,7 +42,10 @@ export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: st
     }
   }
 
+  // 탭을 처음 열 때만 로드. load()의 동기 setLoading(true) 때문에 규칙에 걸린다.
+  // TanStack Query 도입 시 제거 예정.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (tab === "buy" && buy.length === 0) void load("buy");
     if (tab === "surge" && surge.length === 0) void load("surge");
     // eslint-disable-next-line react-hooks/exhaustive-deps
