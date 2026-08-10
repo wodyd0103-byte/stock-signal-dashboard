@@ -63,7 +63,7 @@ const WatchlistRail = forwardRef<WatchlistRailHandle, Props>(({ onSelect, select
       {loading && items.length === 0 ? (
         <div className="space-y-1">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-surface" />)}</div>
       ) : items.length === 0 ? (
-        <p className="px-2 py-4 text-center text-xs text-muted">관심 종목 없음.<br />분석 후 '관심' 버튼으로 추가.</p>
+        <p className="px-2 py-4 text-center text-xs text-muted">관심 종목 없음.<br />분석 후 &apos;관심&apos; 버튼으로 추가.</p>
       ) : (
         <div className="space-y-1">
           {items.map((it) => {

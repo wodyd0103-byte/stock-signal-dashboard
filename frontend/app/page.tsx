@@ -65,8 +65,12 @@ export default function HomePage() {
     }
   }
 
+  // 마운트 시 최초 분석. load()가 동기적으로 setLoading(true)를 호출하기 때문에
+  // set-state-in-effect에 걸린다. 데이터 페칭을 TanStack Query로 옮기면 이 이펙트
+  // 자체가 사라지므로, 그때까지만 억제한다.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load(params.get("ticker") ?? "005930", "1y");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

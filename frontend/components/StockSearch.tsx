@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Search } from "lucide-react";
 import { periods } from "@/lib/api";
 import type { Period } from "@/lib/types";
@@ -21,8 +21,20 @@ export default function StockSearch({
   const [ticker, setTicker] = useState(defaultTicker);
   const [period, setPeriod] = useState<Period>(defaultPeriod);
 
-  useEffect(() => { setTicker(defaultTicker); }, [defaultTicker]);
-  useEffect(() => { setPeriod(defaultPeriod); }, [defaultPeriod]);
+  // 부모가 다른 종목/기간을 확정하면 입력값도 따라가야 한다. 이펙트로 맞추면 한 번 더
+  // 렌더된 뒤에 값이 바뀌므로, React가 권장하는 렌더 중 조정 방식을 쓴다.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [syncedTicker, setSyncedTicker] = useState(defaultTicker);
+  if (syncedTicker !== defaultTicker) {
+    setSyncedTicker(defaultTicker);
+    setTicker(defaultTicker);
+  }
+
+  const [syncedPeriod, setSyncedPeriod] = useState<Period>(defaultPeriod);
+  if (syncedPeriod !== defaultPeriod) {
+    setSyncedPeriod(defaultPeriod);
+    setPeriod(defaultPeriod);
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
