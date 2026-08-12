@@ -35,7 +35,8 @@ export default function PriceTargetCard({ currentPrice, longTerm, optimalExit, p
             </div>
             <span className="text-xs font-medium text-muted">Walk-forward 검증</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          {/* 좁을 때 2열이면 예상 가격 숫자가 칸을 넘어 옆 칸과 겹친다. */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {longTerm.map((p) => {
               const up = p.expected_return_pct >= 0;
               return (
