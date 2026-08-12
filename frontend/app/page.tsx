@@ -79,12 +79,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-bg">
       {/* 상단바 */}
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-3">
+        {/* 좁은 화면에서는 검색이 아래 줄로 내려간다. 한 줄에 다 넣으면 검색 폼의
+            최소 너비 때문에 페이지 전체가 가로로 넘친다. */}
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-ink shrink-0">
             <Sparkles size={20} className="text-toss" />
             <span className="hidden sm:inline">Quant <span className="text-toss">Insight</span></span>
           </div>
-          <div className="flex-1">
+          <div className="order-last min-w-0 grow basis-full lg:order-none lg:basis-0">
             <StockSearch
               defaultTicker={ticker}
               defaultPeriod={period}
@@ -92,16 +94,18 @@ export default function HomePage() {
               loading={loading}
             />
           </div>
-          <MiniSentiment sentiment={sentiment} />
-          <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            className="rounded-xl p-2.5 text-muted hover:bg-surface hover:text-ink"
-            aria-label="설정"
-          >
-            <Settings size={18} />
-          </button>
+          <div className="ml-auto flex items-center gap-1 sm:ml-0 sm:gap-3">
+            <MiniSentiment sentiment={sentiment} />
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="rounded-xl p-2.5 text-muted hover:bg-surface hover:text-ink"
+              aria-label="설정"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         </div>
       </header>
 

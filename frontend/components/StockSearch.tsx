@@ -43,8 +43,9 @@ export default function StockSearch({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card flex items-center gap-2.5 p-2.5">
-      <div className="flex flex-1 items-center gap-2 rounded-xl bg-surface px-4 transition-all focus-within:bg-bg focus-within:ring-2 focus-within:ring-toss/50">
+    // 좁은 화면에서는 입력이 한 줄을 다 쓰고, 기간 선택과 분석 버튼이 아랫줄로 내려간다.
+    <form onSubmit={handleSubmit} className="card flex flex-wrap items-center gap-2.5 p-2.5">
+      <div className="flex min-w-0 grow basis-full items-center gap-2 rounded-xl bg-surface px-4 transition-all focus-within:bg-bg focus-within:ring-2 focus-within:ring-toss/50 sm:basis-0">
         <Search size={18} className="text-muted shrink-0" />
         <input
           value={ticker}
@@ -54,13 +55,13 @@ export default function StockSearch({
         />
       </div>
 
-      <div className="flex h-12 items-center rounded-xl bg-surface p-1">
+      <div className="flex h-12 min-w-0 grow items-center rounded-xl bg-surface p-1 sm:grow-0">
         {periods.map((item) => (
           <button
             key={item.value}
             type="button"
             onClick={() => setPeriod(item.value)}
-            className={`h-10 rounded-lg px-3 text-sm font-bold transition-colors ${
+            className={`h-10 grow rounded-lg px-2 text-sm font-bold transition-colors sm:grow-0 sm:px-3 ${
               period === item.value
                 ? "bg-bg text-ink shadow-card"
                 : "text-muted hover:text-sub"
@@ -74,7 +75,7 @@ export default function StockSearch({
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex h-12 min-w-28 items-center justify-center gap-1.5 rounded-xl bg-toss px-5 text-base font-bold text-white transition-colors hover:bg-toss-600 disabled:cursor-not-allowed disabled:bg-toss-300"
+        className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-toss px-4 text-base font-bold text-white transition-colors hover:bg-toss-600 disabled:cursor-not-allowed disabled:bg-toss-300 sm:min-w-28 sm:px-5"
       >
         {loading ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

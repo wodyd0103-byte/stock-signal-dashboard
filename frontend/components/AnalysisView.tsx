@@ -45,8 +45,9 @@ export default function AnalysisView({ analysis, loading, period, onAddWatchlist
 
       {/* 히어로 가격 */}
       <section className="card overflow-hidden">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        {/* 좁은 화면에서는 CSV/관심 묶음이 가격 아래로 내려간다. */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs font-semibold text-muted">{analysis.ticker}</p>
             <h2 className="mt-1 text-display font-extrabold tracking-tight text-ink tabular">
               {analysis.current_price.toLocaleString()}
@@ -61,7 +62,7 @@ export default function AnalysisView({ analysis, loading, period, onAddWatchlist
               <span className="text-xs text-muted">전일 대비</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="ml-auto flex min-w-0 flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <a href={buildStockCsvUrl(analysis.ticker, period)} className="btn-ghost" title="시계열 CSV 다운로드">
                 <Download size={16} />

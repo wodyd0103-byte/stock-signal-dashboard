@@ -11,7 +11,7 @@ export default function PredictionCard({ predictions }: { predictions: HorizonPr
         <span className="text-xs font-medium text-muted">Walk-forward 검증</span>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {predictions.map((prediction) => {
           const up = prediction.expected_return_pct >= 0;
           return (
