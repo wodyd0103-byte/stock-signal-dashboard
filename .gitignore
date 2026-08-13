@@ -28,6 +28,11 @@ frontend/out/
 backend/.tmp/
 backend/data/cache/
 
+# Playwright
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+
 # Streamlit local creds (any depth)
 **/.streamlit/credentials.toml
 
