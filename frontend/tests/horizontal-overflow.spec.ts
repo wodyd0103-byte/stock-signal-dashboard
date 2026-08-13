@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { mockApi } from "./mock-api";
 
 /**
@@ -10,9 +10,15 @@ import { mockApi } from "./mock-api";
  * 종류라서 자동으로 막는다.
  *
  * jsdom에는 레이아웃 엔진이 없어 이 검사는 진짜 브라우저에서만 의미가 있다.
+ *
+ * 탭은 반드시 하나씩 눌러가며 재야 한다. 숨은 탭은 display:none 이라 레이아웃을
+ * 갖지 않으므로, 기본 화면만 보면 검사한 척만 하게 된다. 실제로 이 순회를 넣기
+ * 전까지 포트폴리오 탭에는 375px에서 421px짜리 넘침이 그대로 남아 있었다.
  */
 
-const WIDTHS = [
+const TABS = ["분석", "포트폴리오", "리서치"] as const;
+
+const VIEWPORTS = [
   { name: "mobile", width: 375, height: 812 },
   { name: "tablet", width: 768, height: 1024 },
   // lg(1024)는 5열 지표 테이블 복귀와 320px 좌측 레일 등장이 동시에 일어나는
@@ -21,8 +27,27 @@ const WIDTHS = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 
-for (const viewport of WIDTHS) {
-  test(`${viewport.name} (${viewport.width}px): 페이지가 가로로 넘치지 않는다`, async ({
+/** 넘쳤을 때 어떤 요소 때문인지 바로 알 수 있게 같이 수집한다. */
+async function measureOverflow(page: Page) {
+  return page.evaluate(() => {
+    const doc = document.documentElement;
+    const overflow = doc.scrollWidth - doc.clientWidth;
+    const offenders: string[] = [];
+    if (overflow > 0) {
+      document.querySelectorAll("*").forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.right > doc.clientWidth + 1 && rect.width > 20) {
+          const cls = (el.className || "").toString().replace(/\s+/g, " ").slice(0, 60);
+          offenders.push(`${el.tagName.toLowerCase()}.${cls} → right ${Math.round(rect.right)}`);
+        }
+      });
+    }
+    return { overflow, viewportWidth: doc.clientWidth, offenders: offenders.slice(0, 5) };
+  });
+}
+
+for (const viewport of VIEWPORTS) {
+  test(`${viewport.name} (${viewport.width}px): 어느 탭에서도 가로로 넘치지 않는다`, async ({
     page,
   }) => {
     await mockApi(page);
@@ -33,29 +58,21 @@ for (const viewport of WIDTHS) {
     // 넘침을 만든 당사자다.
     await expect(page.getByText("기술적 지표")).toBeVisible();
 
-    const result = await page.evaluate(() => {
-      const doc = document.documentElement;
-      const overflow = doc.scrollWidth - doc.clientWidth;
+    for (const tab of TABS) {
+      // 상단 검색 버튼에도 "분석"이 있어서 탭 목록 안에서만 찾는다.
+      await page.locator("nav").getByRole("button", { name: tab, exact: true }).click();
+      await expect(
+        page.locator("nav").getByRole("button", { name: tab, exact: true }),
+      ).toBeVisible();
 
-      // 넘쳤을 때 어떤 요소 때문인지 바로 알 수 있게 같이 수집한다.
-      const offenders: string[] = [];
-      if (overflow > 0) {
-        document.querySelectorAll("*").forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (rect.right > doc.clientWidth + 1 && rect.width > 20) {
-            const cls = (el.className || "").toString().replace(/\s+/g, " ").slice(0, 60);
-            offenders.push(`${el.tagName.toLowerCase()}.${cls} → right ${Math.round(rect.right)}`);
-          }
-        });
-      }
-      return { overflow, viewportWidth: doc.clientWidth, offenders: offenders.slice(0, 5) };
-    });
+      const result = await measureOverflow(page);
 
-    expect(
-      result.overflow,
-      `문서가 뷰포트(${result.viewportWidth}px)보다 ${result.overflow}px 넓다.\n` +
-        `원인 후보:\n${result.offenders.join("\n") || "(없음)"}`,
-    ).toBe(0);
+      expect(
+        result.overflow,
+        `[${tab}] 탭에서 문서가 뷰포트(${result.viewportWidth}px)보다 ${result.overflow}px 넓다.\n` +
+          `원인 후보:\n${result.offenders.join("\n") || "(없음)"}`,
+      ).toBe(0);
+    }
   });
 }
 
