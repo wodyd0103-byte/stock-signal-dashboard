@@ -1,0 +1,6 @@
+# 테스트 전용 의존성. 런타임 requirements.txt 를 포함한다.
+# 지금까지 pytest 는 로컬 venv 에만 설치돼 있어서 어디에도 선언돼 있지 않았고,
+# CI 를 붙이자마자 "No module named pytest" 로 드러났다.
+-r requirements.txt
+
+pytest==9.1.0

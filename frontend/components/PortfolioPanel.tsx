@@ -139,15 +139,18 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
         </button>
       </div>
 
-      {/* 입력 폼 */}
-      <form onSubmit={submit} className="mb-4 grid grid-cols-[1.4fr_1fr_1.2fr_auto] gap-2">
+      {/* 입력 폼.
+          fr 열이라도 input 은 기본 최소 너비를 갖고 그리드 항목의 min-width 는 auto 라서
+          좁은 화면에서 열이 줄지 못하고 카드 밖으로 밀려난다. min-w-0 으로 축소를 허용하고,
+          좁을 때는 종목과 버튼이 한 줄씩 쓰도록 2열로 접는다. */}
+      <form onSubmit={submit} className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-[1.4fr_1fr_1.2fr_auto]">
         <input value={ticker} onChange={(e) => setTicker(e.target.value)} placeholder="종목 (005930)"
-          className="h-11 rounded-xl bg-surface px-3 text-sm font-semibold text-ink placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50" />
+          className="col-span-2 h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50 sm:col-span-1" />
         <input value={qty} onChange={(e) => setQty(e.target.value)} placeholder="수량" inputMode="decimal"
-          className="h-11 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50" />
+          className="h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50" />
         <input value={avg} onChange={(e) => setAvg(e.target.value)} placeholder="평단가" inputMode="decimal"
-          className="h-11 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50" />
-        <button type="submit" className="inline-flex h-11 items-center gap-1 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600">
+          className="h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50" />
+        <button type="submit" className="col-span-2 inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600 sm:col-span-1">
           <Plus size={16} />추가
         </button>
       </form>
