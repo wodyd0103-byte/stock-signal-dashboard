@@ -39,6 +39,9 @@ backend/data/cache/
 frontend/playwright-report/
 frontend/test-results/
 frontend/blob-report/
+# Throwaway specs written to capture a before/after of something. Named so they
+# cannot be committed by an absent-minded `git add -A`.
+frontend/tests/tmp-*.spec.ts
 
 # Streamlit local creds (any depth)
 **/.streamlit/credentials.toml
