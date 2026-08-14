@@ -7,7 +7,7 @@ on:
 
 jobs:
   frontend:
-    name: frontend (lint / build / e2e)
+    name: frontend (format / lint / build / e2e)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,6 +23,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+
+      - run: npm run format:check
 
       - run: npm run lint
 
