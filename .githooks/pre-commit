@@ -1,0 +1,23 @@
+#!/bin/sh
+# Blocks a commit that would fail CI's format check, so the round trip is a
+# second here instead of a red X on the pull request.
+#
+# Installed by frontend's `prepare` script (npm install) or `npm run hooks:install`,
+# both of which point core.hooksPath at this directory. Husky would do the same
+# thing, but it expects to own the repository root, and the npm project lives in
+# frontend/ — one git config line is cheaper than a dependency and a root
+# package.json that exists only to hold it.
+#
+# Skip with `git commit --no-verify`.
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- frontend)
+[ -z "$staged" ] && exit 0
+
+cd frontend || exit 1
+
+if ! npm run --silent format:check; then
+  echo ""
+  echo "Formatting check failed. Fix with:"
+  echo "  cd frontend && npm run format"
+  exit 1
+fi

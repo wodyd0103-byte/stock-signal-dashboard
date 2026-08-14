@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "prepare": "git config core.hooksPath .githooks || exit 0",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
