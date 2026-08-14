@@ -130,15 +130,27 @@ UNIVERSE_CACHE_TTL_SECONDS=3600
 
 ## 테스트
 
+백엔드:
+
 ```powershell
 cd backend
 .venv\Scripts\python.exe -m pytest
 ```
 
+프론트엔드 (GitHub Actions에서 도는 것과 같은 순서):
+
+```powershell
+cd frontend
+npm run format:check   # Prettier. 고칠 때는 npm run format
+npm run lint           # ESLint
+npm run build          # 타입 체크 포함
+npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
+```
+
 ## 로드맵
 
 - 실시간 paper trading 대시보드 (`/api/live/*`, 운용 모드별 예산·손절·익절 관리) — 설계 단계, 미구현
-- 프론트엔드 테스트와 CI 파이프라인
+- 컴포넌트 단위 테스트 (현재 e2e는 레이아웃 회귀만 본다)
 
 ## 투자 유의사항
 

@@ -42,11 +42,15 @@ export default function DisclosureCard({ disc }: { disc: DisclosureInfo }) {
         <ul className="space-y-1.5">
           {shown.map((it, i) => (
             <li key={i} className="flex items-start gap-2 text-xs leading-5">
-              <span className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${catColor[it.category] ?? catColor["기타"]}`}>
+              <span
+                className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${catColor[it.category] ?? catColor["기타"]}`}
+              >
                 {it.category}
               </span>
               <span className="flex-1 text-sub line-clamp-1">{it.title}</span>
-              <span className="shrink-0 text-[10px] text-muted tabular">{it.datetime.slice(5, 10)}</span>
+              <span className="shrink-0 text-[10px] text-muted tabular">
+                {it.datetime.slice(5, 10)}
+              </span>
             </li>
           ))}
         </ul>

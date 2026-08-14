@@ -40,7 +40,9 @@ const WatchlistRail = forwardRef<WatchlistRailHandle, Props>(({ onSelect, select
   }
 
   useImperativeHandle(ref, () => ({ reload: load }));
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function remove(ticker: string, e: React.MouseEvent) {
     e.stopPropagation();
@@ -61,9 +63,17 @@ const WatchlistRail = forwardRef<WatchlistRailHandle, Props>(({ onSelect, select
       </div>
 
       {loading && items.length === 0 ? (
-        <div className="space-y-1">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-surface" />)}</div>
+        <div className="space-y-1">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-11 animate-pulse rounded-xl bg-surface" />
+          ))}
+        </div>
       ) : items.length === 0 ? (
-        <p className="px-2 py-4 text-center text-xs text-muted">관심 종목 없음.<br />분석 후 &apos;관심&apos; 버튼으로 추가.</p>
+        <p className="px-2 py-4 text-center text-xs text-muted">
+          관심 종목 없음.
+          <br />
+          분석 후 &apos;관심&apos; 버튼으로 추가.
+        </p>
       ) : (
         <div className="space-y-1">
           {items.map((it) => {
@@ -78,10 +88,23 @@ const WatchlistRail = forwardRef<WatchlistRailHandle, Props>(({ onSelect, select
                   <p className="truncate text-sm font-bold text-ink">{it.name || it.ticker}</p>
                   <p className="text-[10px] text-muted">
                     {it.ticker}
-                    {it.change_rate != null ? <> · <span className={up ? "text-up" : "text-down"}>{up ? "+" : ""}{it.change_rate.toFixed(2)}%</span></> : null}
+                    {it.change_rate != null ? (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <span className={up ? "text-up" : "text-down"}>
+                          {up ? "+" : ""}
+                          {it.change_rate.toFixed(2)}%
+                        </span>
+                      </>
+                    ) : null}
                   </p>
                 </div>
-                {it.signal ? <span className={`chip text-[10px] px-1.5 py-0.5 ${signalChip[it.signal]}`}>{it.signal}</span> : null}
+                {it.signal ? (
+                  <span className={`chip text-[10px] px-1.5 py-0.5 ${signalChip[it.signal]}`}>
+                    {it.signal}
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   onClick={(e) => void remove(it.ticker, e)}

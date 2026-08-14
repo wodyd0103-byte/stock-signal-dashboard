@@ -25,7 +25,9 @@ function resample(data: PricePoint[], tf: TF): PricePoint[] {
     if (tf === "M") return `${dt.getFullYear()}-${dt.getMonth()}`;
     // 주: ISO 주차 근사 (연 + 주번호)
     const onejan = new Date(dt.getFullYear(), 0, 1);
-    const week = Math.ceil(((dt.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7);
+    const week = Math.ceil(
+      ((dt.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7,
+    );
     return `${dt.getFullYear()}-W${week}`;
   };
   const buckets = new Map<string, PricePoint>();
@@ -40,7 +42,11 @@ function resample(data: PricePoint[], tf: TF): PricePoint[] {
     for (let k = i - w + 1; k <= i; k++) s += closes[k];
     return s / w;
   };
-  return rows.map((r, i) => ({ ...r, ma20: ma(i, Math.min(20, rows.length)) ?? r.ma20, ma60: ma(i, Math.min(10, rows.length)) ?? r.ma60 }));
+  return rows.map((r, i) => ({
+    ...r,
+    ma20: ma(i, Math.min(20, rows.length)) ?? r.ma20,
+    ma60: ma(i, Math.min(10, rows.length)) ?? r.ma60,
+  }));
 }
 
 export default function PriceChart({ data }: { data: PricePoint[] }) {
@@ -72,14 +78,28 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
               {TF_LABEL[t]}
             </button>
           ))}
-          <span className="ml-1 cursor-not-allowed px-2 text-[10px] font-medium text-faint" title="분/틱은 실시간 데이터가 없어 제공하지 않습니다">분·틱 N/A</span>
+          <span
+            className="ml-1 cursor-not-allowed px-2 text-[10px] font-medium text-faint"
+            title="분/틱은 실시간 데이터가 없어 제공하지 않습니다"
+          >
+            분·틱 N/A
+          </span>
         </div>
       </div>
 
       <div className="mb-2 flex items-center gap-3 text-xs font-bold text-muted">
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: stroke }} />종가</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-toss" />MA20</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-warn" />MA60</span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: stroke }} />
+          종가
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-toss" />
+          MA20
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-warn" />
+          MA60
+        </span>
       </div>
 
       <div className="h-[340px]">
@@ -92,8 +112,20 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
               </linearGradient>
             </defs>
             <CartesianGrid stroke="rgb(var(--c-surface))" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }} minTickGap={40} tickLine={false} axisLine={false} />
-            <YAxis domain={["auto", "auto"]} tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }} width={64} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }}
+              minTickGap={40}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              domain={["auto", "auto"]}
+              tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }}
+              width={64}
+              tickLine={false}
+              axisLine={false}
+            />
             <Tooltip
               contentStyle={{
                 background: "rgb(var(--c-ink))",
@@ -106,12 +138,38 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
               }}
               itemStyle={{ color: "rgb(var(--c-bg))" }}
               labelStyle={{ color: "rgb(var(--c-faint))", marginBottom: 4 }}
-              formatter={(value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              formatter={(value: number) =>
+                value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+              }
               labelFormatter={(label) => label}
             />
-            <Area type="monotone" dataKey="close" name="종가" stroke={stroke} strokeWidth={2.4} fill="url(#priceGrad)" animationDuration={500} />
-            <Line type="monotone" dataKey="ma20" name="MA20" stroke="#3182F6" strokeWidth={1.6} dot={false} animationDuration={500} />
-            <Line type="monotone" dataKey="ma60" name="MA60" stroke="#F59F00" strokeWidth={1.6} dot={false} animationDuration={500} />
+            <Area
+              type="monotone"
+              dataKey="close"
+              name="종가"
+              stroke={stroke}
+              strokeWidth={2.4}
+              fill="url(#priceGrad)"
+              animationDuration={500}
+            />
+            <Line
+              type="monotone"
+              dataKey="ma20"
+              name="MA20"
+              stroke="#3182F6"
+              strokeWidth={1.6}
+              dot={false}
+              animationDuration={500}
+            />
+            <Line
+              type="monotone"
+              dataKey="ma60"
+              name="MA60"
+              stroke="#F59F00"
+              strokeWidth={1.6}
+              dot={false}
+              animationDuration={500}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

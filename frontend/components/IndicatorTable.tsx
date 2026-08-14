@@ -44,7 +44,8 @@ export default function IndicatorTable({ indicators }: { indicators: IndicatorDe
                 {indicator.influence}
               </span>
               <p className={`text-sm font-bold tabular text-right ${contribClass}`}>
-                {contribution > 0 ? "+" : ""}{contribution}
+                {contribution > 0 ? "+" : ""}
+                {contribution}
               </p>
               <p className="col-span-2 text-xs leading-5 text-muted xl:col-span-1">
                 {indicator.interpretation}

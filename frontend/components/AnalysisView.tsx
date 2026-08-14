@@ -31,7 +31,9 @@ export default function AnalysisView({ analysis, loading, period, onAddWatchlist
     return (
       <div className="card text-center text-sub">
         <p className="text-base font-bold text-ink">종목을 선택하세요</p>
-        <p className="mt-1 text-sm text-muted">상단 검색 또는 좌측 발굴/관심 목록에서 종목을 고르면 분석이 표시됩니다.</p>
+        <p className="mt-1 text-sm text-muted">
+          상단 검색 또는 좌측 발굴/관심 목록에서 종목을 고르면 분석이 표시됩니다.
+        </p>
       </div>
     );
   }
@@ -54,17 +56,25 @@ export default function AnalysisView({ analysis, loading, period, onAddWatchlist
             </h2>
             <div className="mt-2 flex items-baseline gap-2">
               <span className={`text-lg font-bold tabular ${up ? "text-up" : "text-down"}`}>
-                {up ? "+" : ""}{analysis.change.toLocaleString()}
+                {up ? "+" : ""}
+                {analysis.change.toLocaleString()}
               </span>
-              <span className={`text-base font-bold tabular ${analysis.change_rate >= 0 ? "text-up" : "text-down"}`}>
-                ({analysis.change_rate >= 0 ? "+" : ""}{analysis.change_rate.toFixed(2)}%)
+              <span
+                className={`text-base font-bold tabular ${analysis.change_rate >= 0 ? "text-up" : "text-down"}`}
+              >
+                ({analysis.change_rate >= 0 ? "+" : ""}
+                {analysis.change_rate.toFixed(2)}%)
               </span>
               <span className="text-xs text-muted">전일 대비</span>
             </div>
           </div>
           <div className="ml-auto flex min-w-0 flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <a href={buildStockCsvUrl(analysis.ticker, period)} className="btn-ghost" title="시계열 CSV 다운로드">
+              <a
+                href={buildStockCsvUrl(analysis.ticker, period)}
+                className="btn-ghost"
+                title="시계열 CSV 다운로드"
+              >
                 <Download size={16} />
                 CSV
               </a>
@@ -111,7 +121,9 @@ export default function AnalysisView({ analysis, loading, period, onAddWatchlist
       {/* 수급 + 뉴스 (국내) */}
       {analysis.supply_demand || analysis.news_sentiment ? (
         <section className="grid gap-4 xl:grid-cols-2">
-          {analysis.supply_demand ? <SupplyDemandCard sd={analysis.supply_demand} sector={analysis.sector} /> : null}
+          {analysis.supply_demand ? (
+            <SupplyDemandCard sd={analysis.supply_demand} sector={analysis.sector} />
+          ) : null}
           {analysis.news_sentiment ? <NewsSentimentCard news={analysis.news_sentiment} /> : null}
         </section>
       ) : null}
@@ -152,7 +164,9 @@ function DataSourceBanner({ analysis }: { analysis: AnalysisResponse }) {
         <AlertCircle size={16} className="shrink-0" />
         <div className="flex-1">
           <p className="font-bold">샘플 데이터 사용 중</p>
-          {analysis.provider_error ? <p className="mt-0.5 text-xs">실패: {analysis.provider_error}</p> : null}
+          {analysis.provider_error ? (
+            <p className="mt-0.5 text-xs">실패: {analysis.provider_error}</p>
+          ) : null}
         </div>
       </div>
     );
@@ -160,7 +174,9 @@ function DataSourceBanner({ analysis }: { analysis: AnalysisResponse }) {
   return (
     <div className="flex items-center gap-2.5 rounded-card bg-toss-50 px-3 py-2 text-xs text-toss-600">
       <CheckCircle2 size={15} className="shrink-0" />
-      <p className="font-medium">실시간 데이터 · 출처 <span className="font-bold">{analysis.source}</span></p>
+      <p className="font-medium">
+        실시간 데이터 · 출처 <span className="font-bold">{analysis.source}</span>
+      </p>
     </div>
   );
 }

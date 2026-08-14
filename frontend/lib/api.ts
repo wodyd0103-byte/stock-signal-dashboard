@@ -16,7 +16,7 @@ import type {
   RepresentativeStocksResponse,
   RetroSummary,
   SurgeScanResponse,
-  WatchlistSummary
+  WatchlistSummary,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api";
@@ -28,11 +28,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(options?.headers ?? {})
-      }
+        ...(options?.headers ?? {}),
+      },
     });
   } catch (error) {
-    throw new Error(`백엔드 서버에 연결할 수 없습니다. FastAPI가 ${API_BASE}에서 실행 중인지 확인하세요.`);
+    throw new Error(
+      `백엔드 서버에 연결할 수 없습니다. FastAPI가 ${API_BASE}에서 실행 중인지 확인하세요.`,
+    );
   }
 
   if (!response.ok) {
@@ -68,12 +70,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export function fetchAnalysis(ticker: string, period: Period): Promise<AnalysisResponse> {
-  return request<AnalysisResponse>(`/stocks/${encodeURIComponent(ticker)}/analysis?period=${period}`);
+  return request<AnalysisResponse>(
+    `/stocks/${encodeURIComponent(ticker)}/analysis?period=${period}`,
+  );
 }
 
-export function fetchBacktest(ticker: string, period: Period, initialCapital: number, strategy: BacktestStrategy = "regime_adjusted_strategy"): Promise<BacktestResponse> {
+export function fetchBacktest(
+  ticker: string,
+  period: Period,
+  initialCapital: number,
+  strategy: BacktestStrategy = "regime_adjusted_strategy",
+): Promise<BacktestResponse> {
   return request<BacktestResponse>(
-    `/stocks/${encodeURIComponent(ticker)}/backtest?period=${period}&initial_capital=${initialCapital}&strategy=${strategy}`
+    `/stocks/${encodeURIComponent(ticker)}/backtest?period=${period}&initial_capital=${initialCapital}&strategy=${strategy}`,
   );
 }
 
@@ -87,9 +96,11 @@ export function fetchRepresentativeStocks(params?: {
     market: params?.market ?? "all",
     kr_limit: String(params?.krLimit ?? 100),
     us_limit: String(params?.usLimit ?? 100),
-    source: params?.source ?? "auto"
+    source: params?.source ?? "auto",
   });
-  return request<RepresentativeStocksResponse>(`/market/representative-stocks?${search.toString()}`);
+  return request<RepresentativeStocksResponse>(
+    `/market/representative-stocks?${search.toString()}`,
+  );
 }
 
 export function fetchBuySignals(params: {
@@ -112,7 +123,7 @@ export function fetchBuySignals(params: {
     include_sample: String(params.includeSample),
     source: params.source ?? "auto",
     sort_by: params.sortBy ?? "signal",
-    force_refresh: String(params.forceRefresh ?? false)
+    force_refresh: String(params.forceRefresh ?? false),
   });
   return request<BuySignalsResponse>(`/market/buy-signals?${search.toString()}`);
 }
@@ -126,10 +137,13 @@ export function fetchWatchlist(): Promise<WatchlistSummary[]> {
   return request<WatchlistSummary[]>("/watchlist");
 }
 
-export function addWatchlist(ticker: string, name?: string): Promise<{ id: number; ticker: string; name?: string | null }> {
+export function addWatchlist(
+  ticker: string,
+  name?: string,
+): Promise<{ id: number; ticker: string; name?: string | null }> {
   return request("/watchlist", {
     method: "POST",
-    body: JSON.stringify({ ticker, name })
+    body: JSON.stringify({ ticker, name }),
   });
 }
 
@@ -141,7 +155,13 @@ export function fetchPortfolioAnalysis(): Promise<PortfolioReport> {
   return request<PortfolioReport>("/portfolio/analysis");
 }
 
-export function fetchRebalance(params: { cash?: number; strategy?: "equal" | "signal" | "risk_parity"; maxWeight?: number; cashBuffer?: number; weights?: string }): Promise<RebalancePlan> {
+export function fetchRebalance(params: {
+  cash?: number;
+  strategy?: "equal" | "signal" | "risk_parity";
+  maxWeight?: number;
+  cashBuffer?: number;
+  weights?: string;
+}): Promise<RebalancePlan> {
   const search = new URLSearchParams({
     cash: String(params.cash ?? 0),
     strategy: params.strategy ?? "signal",
@@ -152,7 +172,10 @@ export function fetchRebalance(params: { cash?: number; strategy?: "equal" | "si
   return request<RebalancePlan>(`/portfolio/rebalance?${search.toString()}`);
 }
 
-export function fetchOptimize(params?: { method?: "max_sharpe" | "min_variance"; maxWeight?: number }): Promise<OptimizeResult> {
+export function fetchOptimize(params?: {
+  method?: "max_sharpe" | "min_variance";
+  maxWeight?: number;
+}): Promise<OptimizeResult> {
   const search = new URLSearchParams({
     method: params?.method ?? "max_sharpe",
     max_weight: String(params?.maxWeight ?? 40),
@@ -160,7 +183,12 @@ export function fetchOptimize(params?: { method?: "max_sharpe" | "min_variance";
   return request<OptimizeResult>(`/portfolio/optimize?${search.toString()}`);
 }
 
-export function addHolding(payload: { ticker: string; name?: string; quantity: number; avg_price: number }) {
+export function addHolding(payload: {
+  ticker: string;
+  name?: string;
+  quantity: number;
+  avg_price: number;
+}) {
   return request("/portfolio/holdings", { method: "POST", body: JSON.stringify(payload) });
 }
 
@@ -176,7 +204,11 @@ export function evaluateRetro(): Promise<RetroSummary & { evaluated: number }> {
   return request("/retrospective/evaluate", { method: "POST" });
 }
 
-export function fetchFactorIC(params?: { horizonDays?: number; universeSize?: number; forceRefresh?: boolean }): Promise<ICReport> {
+export function fetchFactorIC(params?: {
+  horizonDays?: number;
+  universeSize?: number;
+  forceRefresh?: boolean;
+}): Promise<ICReport> {
   const search = new URLSearchParams({
     horizon_days: String(params?.horizonDays ?? 5),
     universe_size: String(params?.universeSize ?? 40),
@@ -238,7 +270,7 @@ export function buildBuySignalsCsvUrl(params: {
     include_sample: String(params.includeSample ?? false),
     source: params.source ?? "auto",
     sort_by: params.sortBy ?? "signal",
-    force_refresh: String(params.forceRefresh ?? false)
+    force_refresh: String(params.forceRefresh ?? false),
   });
   return `${API_BASE}/export/buy-signals.csv?${search.toString()}`;
 }
@@ -256,5 +288,5 @@ export const periods: Array<{ value: Period; label: string }> = [
   { value: "3mo", label: "3개월" },
   { value: "6mo", label: "6개월" },
   { value: "1y", label: "1년" },
-  { value: "3y", label: "3년" }
+  { value: "3y", label: "3년" },
 ];

@@ -25,18 +25,18 @@
 html.dark {
   color-scheme: dark;
   /* 다크 테마 (토스 다크 스타일) */
-  --c-bg: 18 19 23;        /* 페이지 배경 (가장 어두움) */
-  --c-card: 30 32 38;      /* 카드 (페이지보다 밝게 → 분리) */
-  --c-surface: 38 41 48;   /* 보조 표면 */
+  --c-bg: 18 19 23; /* 페이지 배경 (가장 어두움) */
+  --c-card: 30 32 38; /* 카드 (페이지보다 밝게 → 분리) */
+  --c-surface: 38 41 48; /* 보조 표면 */
   --c-surface2: 50 54 63;
-  --c-ink: 237 239 242;    /* 본문 */
+  --c-ink: 237 239 242; /* 본문 */
   --c-sub: 169 176 186;
   --c-muted: 130 138 148;
   --c-faint: 92 99 108;
   --c-line: 47 51 59;
-  --c-toss-50: 22 40 66;   /* 어두운 블루 틴트 */
-  --c-toss-700: 132 182 252;  /* 다크에선 밝은 블루 텍스트 */
-  --c-warnBg: 47 41 20;    /* 어두운 옐로 틴트 */
+  --c-toss-50: 22 40 66; /* 어두운 블루 틴트 */
+  --c-toss-700: 132 182 252; /* 다크에선 밝은 블루 텍스트 */
+  --c-warnBg: 47 41 20; /* 어두운 옐로 틴트 */
 }
 
 * {
@@ -45,18 +45,32 @@ html.dark {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: rgb(var(--c-bg));
   color: rgb(var(--c-ink));
-  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
-    system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-family:
+    "Pretendard Variable",
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
   font-feature-settings: "tnum" 1;
-  transition: background-color 200ms ease, color 200ms ease;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font: inherit;
   -webkit-tap-highlight-color: transparent;
 }
@@ -95,7 +109,10 @@ button {
 @layer components {
   .card {
     @apply rounded-card bg-card p-5 shadow-card;
-    transition: box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease;
+    transition:
+      box-shadow 200ms ease,
+      transform 200ms ease,
+      background-color 200ms ease;
   }
   .card-hover {
     @apply hover:shadow-cardHover;
@@ -132,29 +149,57 @@ button {
   animation: page-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 메인 분석 카드 stagger 진입 */
 .stagger > * {
   animation: card-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.stagger > *:nth-child(1) { animation-delay: 0ms; }
-.stagger > *:nth-child(2) { animation-delay: 40ms; }
-.stagger > *:nth-child(3) { animation-delay: 80ms; }
-.stagger > *:nth-child(4) { animation-delay: 120ms; }
-.stagger > *:nth-child(5) { animation-delay: 160ms; }
-.stagger > *:nth-child(6) { animation-delay: 200ms; }
-.stagger > *:nth-child(n+7) { animation-delay: 240ms; }
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+.stagger > *:nth-child(n + 7) {
+  animation-delay: 240ms;
+}
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 모션 줄이기 선호 존중 */
 @media (prefers-reduced-motion: reduce) {
-  *, .page-enter, .stagger > * {
+  *,
+  .page-enter,
+  .stagger > * {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }

@@ -15,9 +15,17 @@ export default function IndicatorGuideInline() {
         className="flex w-full items-center justify-between rounded-card bg-surface px-5 py-3.5 text-left transition-colors hover:bg-surface2"
       >
         <span className="text-sm font-bold text-ink">신호 점수 기준이 궁금하세요?</span>
-        {open ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
+        {open ? (
+          <ChevronUp size={16} className="text-muted" />
+        ) : (
+          <ChevronDown size={16} className="text-muted" />
+        )}
       </button>
-      {open ? <div className="mt-3"><SignalGuide /></div> : null}
+      {open ? (
+        <div className="mt-3">
+          <SignalGuide />
+        </div>
+      ) : null}
     </section>
   );
 }

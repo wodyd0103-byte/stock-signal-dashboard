@@ -17,9 +17,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   // CI 에서는 실패 시 리포트를 아티팩트로 올리므로 html 도 같이 낸다.
-  reporter: process.env.CI
-    ? [["github"], ["list"], ["html", { open: "never" }]]
-    : [["list"]],
+  reporter: process.env.CI ? [["github"], ["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
     baseURL: externalBaseUrl ?? "http://127.0.0.1:3100",
     trace: "on-first-retry",

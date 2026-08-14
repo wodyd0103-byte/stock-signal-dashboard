@@ -5,7 +5,13 @@ import type { SectorStrength, SupplyDemand } from "@/lib/types";
  * 외국인/기관 수급 카드. 한국시장 alpha 최강 factor.
  * 순매수(빨강) / 순매도(파랑) — 한국 컨벤션.
  */
-export default function SupplyDemandCard({ sd, sector }: { sd: SupplyDemand; sector?: SectorStrength | null }) {
+export default function SupplyDemandCard({
+  sd,
+  sector,
+}: {
+  sd: SupplyDemand;
+  sector?: SectorStrength | null;
+}) {
   return (
     <div className="card">
       <div className="mb-3 flex items-baseline justify-between">
@@ -36,7 +42,9 @@ export default function SupplyDemandCard({ sd, sector }: { sd: SupplyDemand; sec
       <div className="mt-4">
         <div className="mb-1 flex items-baseline justify-between text-xs">
           <span className="font-medium text-sub">수급 점수</span>
-          <span className="font-bold text-ink tabular">{sd.korean_flow_score.toFixed(0)} / 100</span>
+          <span className="font-bold text-ink tabular">
+            {sd.korean_flow_score.toFixed(0)} / 100
+          </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-surface">
           <div
@@ -56,8 +64,11 @@ export default function SupplyDemandCard({ sd, sector }: { sd: SupplyDemand; sec
               <Layers size={13} />
               업종 상대강도
             </p>
-            <span className={`text-sm font-bold tabular ${sector.sector_rs >= 0 ? "text-up" : "text-down"}`}>
-              {sector.sector_rs >= 0 ? "+" : ""}{sector.sector_rs.toFixed(1)}%p
+            <span
+              className={`text-sm font-bold tabular ${sector.sector_rs >= 0 ? "text-up" : "text-down"}`}
+            >
+              {sector.sector_rs >= 0 ? "+" : ""}
+              {sector.sector_rs.toFixed(1)}%p
             </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg">
@@ -91,8 +102,11 @@ function FlowTile({
         {icon}
         {label}
       </p>
-      <p className={`mt-1 text-sm font-bold tabular ${muted ? "opacity-70" : ""} ${up ? "text-up" : "text-down"}`}>
-        {up ? "+" : ""}{value.toLocaleString()}
+      <p
+        className={`mt-1 text-sm font-bold tabular ${muted ? "opacity-70" : ""} ${up ? "text-up" : "text-down"}`}
+      >
+        {up ? "+" : ""}
+        {value.toLocaleString()}
         <span className="ml-1 text-[10px] font-medium text-muted">주</span>
       </p>
     </div>

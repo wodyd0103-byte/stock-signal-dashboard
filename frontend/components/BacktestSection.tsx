@@ -44,7 +44,11 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
           <p className="text-xs font-semibold text-muted">백테스트</p>
           <h2 className="mt-0.5 text-heading text-ink">전략 검증 (다음 거래일 시가 체결)</h2>
         </div>
-        {open ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
+        {open ? (
+          <ChevronUp size={18} className="text-muted" />
+        ) : (
+          <ChevronDown size={18} className="text-muted" />
+        )}
       </button>
 
       {open ? (
@@ -57,7 +61,11 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
                 onChange={(e) => setStrategy(e.target.value as BacktestStrategy)}
                 className="h-11 rounded-xl bg-surface px-3 text-sm font-bold text-ink outline-none focus:bg-bg focus:ring-2 focus:ring-toss/50"
               >
-                {strategyOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {strategyOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="flex w-44 flex-col gap-1">
@@ -77,18 +85,32 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
               disabled={loading}
               className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-toss px-5 text-sm font-bold text-white hover:bg-toss-600 disabled:bg-toss-300"
             >
-              {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Play size={16} />}
+              {loading ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <Play size={16} />
+              )}
               실행
             </button>
           </div>
 
-          {error ? <div className="rounded-card bg-down/10 px-4 py-3 text-sm text-down">{error}</div> : null}
+          {error ? (
+            <div className="rounded-card bg-down/10 px-4 py-3 text-sm text-down">{error}</div>
+          ) : null}
 
           {result ? (
             <>
               <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-                <Metric label="총 수익률" value={`${result.total_return >= 0 ? "+" : ""}${result.total_return.toFixed(2)}%`} tone={result.total_return >= 0 ? "up" : "down"} />
-                <Metric label="보유 전략" value={`${result.buy_and_hold_return >= 0 ? "+" : ""}${result.buy_and_hold_return.toFixed(2)}%`} tone={result.buy_and_hold_return >= 0 ? "up" : "down"} />
+                <Metric
+                  label="총 수익률"
+                  value={`${result.total_return >= 0 ? "+" : ""}${result.total_return.toFixed(2)}%`}
+                  tone={result.total_return >= 0 ? "up" : "down"}
+                />
+                <Metric
+                  label="보유 전략"
+                  value={`${result.buy_and_hold_return >= 0 ? "+" : ""}${result.buy_and_hold_return.toFixed(2)}%`}
+                  tone={result.buy_and_hold_return >= 0 ? "up" : "down"}
+                />
                 <Metric label="MDD" value={`${result.max_drawdown.toFixed(2)}%`} tone="warn" />
                 <Metric label="승률" value={`${result.win_rate.toFixed(1)}%`} tone="ink" />
               </div>
@@ -96,7 +118,9 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
               <p className="text-xs leading-5 text-muted">{result.note}</p>
             </>
           ) : (
-            <p className="text-sm text-muted">{loading ? "계산 중..." : "전략과 자본을 정하고 실행하세요."}</p>
+            <p className="text-sm text-muted">
+              {loading ? "계산 중..." : "전략과 자본을 정하고 실행하세요."}
+            </p>
           )}
         </div>
       ) : null}
@@ -104,7 +128,15 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: string; tone: "up" | "down" | "warn" | "ink" }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "up" | "down" | "warn" | "ink";
+}) {
   const cls = { up: "text-up", down: "text-down", warn: "text-warn", ink: "text-ink" }[tone];
   return (
     <div className="card-surface">

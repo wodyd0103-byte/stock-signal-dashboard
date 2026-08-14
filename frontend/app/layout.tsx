@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Quant Insight",
-  description: "단일 페이지 주식 분석 도구. 외부 매매 앱 보조용 참고 정보."
+  description: "단일 페이지 주식 분석 도구. 외부 매매 앱 보조용 참고 정보.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
