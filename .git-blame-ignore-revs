@@ -1,0 +1,14 @@
+# Commits that only moved whitespace around, so `git blame` can skip past them
+# to whoever actually wrote the line.
+#
+# GitHub applies this file to its blame view on its own. Locally it needs one
+# command, once per clone:
+#
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Only add a commit here if it is purely mechanical and reproducible — running
+# the formatter on its parent has to yield exactly it. A commit with a
+# hand-written change in it would be hidden from blame along with the noise.
+
+# style(frontend): format the codebase with Prettier (#11)
+96363e22ea9bde43de761fa9b4615e75c64fa1c3
