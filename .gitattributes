@@ -1,0 +1,8 @@
+# Git already stores every text file with LF. Without this, Windows checkouts
+# get CRLF in the working tree (core.autocrlf=true) and `npm run format:check`
+# fails there while passing in CI, since Prettier expects LF.
+* text=auto eol=lf
+
+# Batch files are read by cmd.exe, which is the one consumer here that still
+# wants CRLF.
+*.bat text eol=crlf
