@@ -62,9 +62,7 @@ export default function StockSearch({
             type="button"
             onClick={() => setPeriod(item.value)}
             className={`h-10 grow rounded-lg px-2 text-sm font-bold transition-colors sm:grow-0 sm:px-3 ${
-              period === item.value
-                ? "bg-bg text-ink shadow-card"
-                : "text-muted hover:text-sub"
+              period === item.value ? "bg-bg text-ink shadow-card" : "text-muted hover:text-sub"
             }`}
           >
             {item.label}

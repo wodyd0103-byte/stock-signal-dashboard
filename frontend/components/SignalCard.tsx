@@ -1,16 +1,26 @@
 import type { Signal, SignalScore } from "@/lib/types";
 
 const signalStyle: Record<Signal, { bg: string; text: string; emoji: string }> = {
-  "STRONG BUY":  { bg: "bg-up text-white",           text: "강력 매수", emoji: "🚀" },
-  BUY:           { bg: "bg-up text-white",           text: "매수",     emoji: "📈" },
-  "WEAK BUY":    { bg: "bg-up/15 text-up",           text: "약매수",   emoji: "↗" },
-  HOLD:          { bg: "bg-surface text-sub",        text: "관망",     emoji: "→" },
-  "WEAK SELL":   { bg: "bg-down/15 text-down",       text: "약매도",   emoji: "↘" },
-  SELL:          { bg: "bg-down text-white",         text: "매도",     emoji: "📉" },
-  "STRONG SELL": { bg: "bg-down text-white",         text: "강력 매도", emoji: "⚠" },
+  "STRONG BUY": { bg: "bg-up text-white", text: "강력 매수", emoji: "🚀" },
+  BUY: { bg: "bg-up text-white", text: "매수", emoji: "📈" },
+  "WEAK BUY": { bg: "bg-up/15 text-up", text: "약매수", emoji: "↗" },
+  HOLD: { bg: "bg-surface text-sub", text: "관망", emoji: "→" },
+  "WEAK SELL": { bg: "bg-down/15 text-down", text: "약매도", emoji: "↘" },
+  SELL: { bg: "bg-down text-white", text: "매도", emoji: "📉" },
+  "STRONG SELL": { bg: "bg-down text-white", text: "강력 매도", emoji: "⚠" },
 };
 
-function ScoreBar({ label, value, tone, zone }: { label: string; value: number; tone: string; zone?: string }) {
+function ScoreBar({
+  label,
+  value,
+  tone,
+  zone,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+  zone?: string;
+}) {
   const width = Math.max(0, Math.min(100, value));
   return (
     <div>
@@ -31,7 +41,8 @@ function ScoreBar({ label, value, tone, zone }: { label: string; value: number; 
 }
 
 export default function SignalCard({ signal }: { signal: SignalScore }) {
-  const mlProbability = signal.ml_up_probability == null ? null : Math.round(signal.ml_up_probability * 100);
+  const mlProbability =
+    signal.ml_up_probability == null ? null : Math.round(signal.ml_up_probability * 100);
   const style = signalStyle[signal.signal];
 
   return (
@@ -49,18 +60,47 @@ export default function SignalCard({ signal }: { signal: SignalScore }) {
       </div>
 
       <div className="mt-6 space-y-4">
-        <ScoreBar label="최종 매수 점수" value={signal.final_buy_score ?? signal.buy_score} zone={signal.buy_score_zone} tone="bg-up" />
-        <ScoreBar label="최종 매도 점수" value={signal.final_sell_score ?? signal.sell_score} zone={signal.sell_score_zone} tone="bg-down" />
-        <ScoreBar label="리스크 점수"    value={signal.risk_score}                            zone={signal.risk_score_zone} tone="bg-warn" />
+        <ScoreBar
+          label="최종 매수 점수"
+          value={signal.final_buy_score ?? signal.buy_score}
+          zone={signal.buy_score_zone}
+          tone="bg-up"
+        />
+        <ScoreBar
+          label="최종 매도 점수"
+          value={signal.final_sell_score ?? signal.sell_score}
+          zone={signal.sell_score_zone}
+          tone="bg-down"
+        />
+        <ScoreBar
+          label="리스크 점수"
+          value={signal.risk_score}
+          zone={signal.risk_score_zone}
+          tone="bg-warn"
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-2">
-        <Tile label="원 매수"      value={`${signal.raw_buy_score ?? signal.buy_score}점`} />
-        <Tile label="원 매도"      value={`${signal.raw_sell_score ?? signal.sell_score}점`} />
-        <Tile label="시장 국면"    value={signal.market_regime ?? "-"} />
-        <Tile label="ML 상승확률"  value={mlProbability == null ? "데이터 부족" : `${mlProbability}%`} highlight={mlProbability != null && mlProbability >= 60} />
-        <Tile label="상대 강도"    value={signal.relative_strength_score == null ? "-" : `${signal.relative_strength_score.toFixed(2)}%`} />
-        <Tile label="유동성"       value={signal.liquidity_score == null ? "-" : `${signal.liquidity_score.toFixed(0)}점`} />
+        <Tile label="원 매수" value={`${signal.raw_buy_score ?? signal.buy_score}점`} />
+        <Tile label="원 매도" value={`${signal.raw_sell_score ?? signal.sell_score}점`} />
+        <Tile label="시장 국면" value={signal.market_regime ?? "-"} />
+        <Tile
+          label="ML 상승확률"
+          value={mlProbability == null ? "데이터 부족" : `${mlProbability}%`}
+          highlight={mlProbability != null && mlProbability >= 60}
+        />
+        <Tile
+          label="상대 강도"
+          value={
+            signal.relative_strength_score == null
+              ? "-"
+              : `${signal.relative_strength_score.toFixed(2)}%`
+          }
+        />
+        <Tile
+          label="유동성"
+          value={signal.liquidity_score == null ? "-" : `${signal.liquidity_score.toFixed(0)}점`}
+        />
       </div>
 
       <div className="mt-5 rounded-xl bg-surface p-4">
@@ -83,9 +123,14 @@ export default function SignalCard({ signal }: { signal: SignalScore }) {
       ) : null}
 
       <div className="mt-5 border-t border-line pt-5">
-        <h3 className="text-sm font-bold text-ink">{signal.signal === "HOLD" ? "HOLD 판단 이유" : "판단 이유"}</h3>
+        <h3 className="text-sm font-bold text-ink">
+          {signal.signal === "HOLD" ? "HOLD 판단 이유" : "판단 이유"}
+        </h3>
         <ul className="mt-2 space-y-1.5 text-sm leading-6 text-sub">
-          {(signal.signal === "HOLD" && signal.hold_reasons?.length ? signal.hold_reasons : signal.reasons).map((reason) => (
+          {(signal.signal === "HOLD" && signal.hold_reasons?.length
+            ? signal.hold_reasons
+            : signal.reasons
+          ).map((reason) => (
             <li key={reason} className="flex gap-2">
               <span className="text-toss">·</span>
               <span>{reason}</span>
@@ -99,9 +144,13 @@ export default function SignalCard({ signal }: { signal: SignalScore }) {
 
 function Tile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl px-3.5 py-2.5 transition-colors ${highlight ? "bg-toss-50" : "bg-surface"}`}>
+    <div
+      className={`rounded-xl px-3.5 py-2.5 transition-colors ${highlight ? "bg-toss-50" : "bg-surface"}`}
+    >
       <p className="text-xs font-medium text-muted">{label}</p>
-      <p className={`mt-0.5 text-sm font-bold tabular ${highlight ? "text-toss-600" : "text-ink"}`}>{value}</p>
+      <p className={`mt-0.5 text-sm font-bold tabular ${highlight ? "text-toss-600" : "text-ink"}`}>
+        {value}
+      </p>
     </div>
   );
 }

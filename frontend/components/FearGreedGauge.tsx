@@ -20,10 +20,10 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
 
   // 5구간 아크 (공포 → 탐욕)
   const segments = [
-    { from: 0, to: 24, color: "#3182F6" },   // 극도 공포 (파랑)
-    { from: 24, to: 44, color: "#84B6FC" },  // 공포
-    { from: 44, to: 56, color: "#B0B8C1" },  // 중립 (회색)
-    { from: 56, to: 75, color: "#FF7B82" },  // 탐욕
+    { from: 0, to: 24, color: "#3182F6" }, // 극도 공포 (파랑)
+    { from: 24, to: 44, color: "#84B6FC" }, // 공포
+    { from: 44, to: 56, color: "#B0B8C1" }, // 중립 (회색)
+    { from: 56, to: 75, color: "#FF7B82" }, // 탐욕
     { from: 75, to: 100, color: "#F04452" }, // 극도 탐욕 (빨강)
   ];
 
@@ -34,10 +34,7 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
           <p className="text-xs font-semibold text-muted">시장 심리</p>
           <h2 className="mt-0.5 text-heading text-ink">공포 · 탐욕 지수</h2>
         </div>
-        <span
-          className="chip text-sm px-3 py-1"
-          style={{ background: `${color}1A`, color }}
-        >
+        <span className="chip text-sm px-3 py-1" style={{ background: `${color}1A`, color }}>
           {sentiment.label}
         </span>
       </div>
@@ -71,8 +68,12 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
           <circle cx={cx} cy={cy} r={3.5} fill="rgb(var(--c-card))" />
 
           {/* 라벨 */}
-          <text x={28} y={145} fontSize={9} fill="rgb(var(--c-muted))" fontWeight={700}>공포</text>
-          <text x={210} y={145} fontSize={9} fill="rgb(var(--c-muted))" fontWeight={700}>탐욕</text>
+          <text x={28} y={145} fontSize={9} fill="rgb(var(--c-muted))" fontWeight={700}>
+            공포
+          </text>
+          <text x={210} y={145} fontSize={9} fill="rgb(var(--c-muted))" fontWeight={700}>
+            탐욕
+          </text>
         </svg>
 
         <div className="-mt-6 text-center">
@@ -94,7 +95,9 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
                 style={{ width: `${c.score}%`, background: scoreColor(c.score) }}
               />
             </div>
-            <span className="w-8 text-right text-xs font-bold text-ink tabular">{Math.round(c.score)}</span>
+            <span className="w-8 text-right text-xs font-bold text-ink tabular">
+              {Math.round(c.score)}
+            </span>
           </div>
         ))}
       </div>

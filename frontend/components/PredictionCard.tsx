@@ -24,7 +24,8 @@ export default function PredictionCard({ predictions }: { predictions: HorizonPr
                 {prediction.predicted_price.toLocaleString()}
               </p>
               <p className={`mt-1 text-sm font-bold tabular ${up ? "text-up" : "text-down"}`}>
-                {up ? "+" : ""}{prediction.expected_return_pct.toFixed(2)}%
+                {up ? "+" : ""}
+                {prediction.expected_return_pct.toFixed(2)}%
               </p>
               <div className="mt-3 flex items-center gap-1.5">
                 <div className="h-1 flex-1 rounded-full bg-bg overflow-hidden">
@@ -33,7 +34,9 @@ export default function PredictionCard({ predictions }: { predictions: HorizonPr
                     style={{ width: `${prediction.confidence_score}%` }}
                   />
                 </div>
-                <span className="text-[10px] font-bold text-muted tabular">{prediction.confidence_score}</span>
+                <span className="text-[10px] font-bold text-muted tabular">
+                  {prediction.confidence_score}
+                </span>
               </div>
             </div>
           );
@@ -41,7 +44,8 @@ export default function PredictionCard({ predictions }: { predictions: HorizonPr
       </div>
 
       <p className="mt-4 text-xs leading-5 text-muted">
-        예측값은 과거 데이터 기반 통계 모델의 산출값입니다. 실거래 시 외부 증권사 앱에서 직접 확인 후 매매하세요.
+        예측값은 과거 데이터 기반 통계 모델의 산출값입니다. 실거래 시 외부 증권사 앱에서 직접 확인
+        후 매매하세요.
       </p>
     </section>
   );

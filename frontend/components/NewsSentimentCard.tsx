@@ -28,11 +28,16 @@ export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
       <div className="mb-4">
         <div className="mb-1 flex items-baseline justify-between text-xs">
           <span className="font-medium text-down">부정 {news.negative_count}</span>
-          <span className="font-bold tabular" style={{ color }}>{score.toFixed(0)} / 100</span>
+          <span className="font-bold tabular" style={{ color }}>
+            {score.toFixed(0)} / 100
+          </span>
           <span className="font-medium text-up">긍정 {news.positive_count}</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-surface">
-          <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${score}%`, background: color }} />
+          <div
+            className="h-2 rounded-full transition-all duration-500"
+            style={{ width: `${score}%`, background: color }}
+          />
         </div>
       </div>
 
@@ -42,10 +47,15 @@ export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
           <li key={i} className="flex items-start gap-2 text-xs leading-5">
             <span
               className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold tabular ${
-                h.score > 0 ? "bg-up/15 text-up" : h.score < 0 ? "bg-down/15 text-down" : "bg-surface text-muted"
+                h.score > 0
+                  ? "bg-up/15 text-up"
+                  : h.score < 0
+                    ? "bg-down/15 text-down"
+                    : "bg-surface text-muted"
               }`}
             >
-              {h.score > 0 ? "+" : ""}{h.score}
+              {h.score > 0 ? "+" : ""}
+              {h.score}
             </span>
             <span className="text-sub line-clamp-1">{h.title}</span>
           </li>
@@ -53,7 +63,8 @@ export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
       </ul>
 
       <p className="mt-3 text-[11px] leading-5 text-muted">
-        최근 뉴스 제목 {news.total}건을 금융 키워드 사전으로 분석. 제목 기반이라 문맥은 반영 못 합니다.
+        최근 뉴스 제목 {news.total}건을 금융 키워드 사전으로 분석. 제목 기반이라 문맥은 반영 못
+        합니다.
       </p>
     </div>
   );

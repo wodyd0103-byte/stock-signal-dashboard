@@ -40,9 +40,9 @@ const config: Config = {
         },
 
         // 한국 주식 컨벤션 (양 테마 공통 비비드)
-        up: "#F04452",       // 상승 빨강
+        up: "#F04452", // 상승 빨강
         upBg: "#FEF2F2",
-        down: "#3182F6",     // 하락 파랑
+        down: "#3182F6", // 하락 파랑
         downBg: "#EEF5FF",
 
         // 신호 컬러 (기존 호환)
@@ -73,14 +73,17 @@ const config: Config = {
       },
       fontSize: {
         // Toss-like 큰 타이포
-        "display-xl": ["48px", { lineHeight: "56px", letterSpacing: "-0.025em", fontWeight: "800" }],
-        "display": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
-        "title": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }],
-        "heading": ["20px", { lineHeight: "28px", fontWeight: "700" }],
+        "display-xl": [
+          "48px",
+          { lineHeight: "56px", letterSpacing: "-0.025em", fontWeight: "800" },
+        ],
+        display: ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+        title: ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }],
+        heading: ["20px", { lineHeight: "28px", fontWeight: "700" }],
       },
       borderRadius: {
-        "xl2": "20px",
-        "card": "16px",
+        xl2: "20px",
+        card: "16px",
       },
       boxShadow: {
         card: "0 1px 2px rgba(0, 27, 55, 0.04), 0 4px 16px rgba(0, 27, 55, 0.04)",

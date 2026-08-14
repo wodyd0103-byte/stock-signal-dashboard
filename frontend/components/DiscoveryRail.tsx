@@ -17,7 +17,13 @@ const signalChip: Record<Signal, string> = {
   "STRONG SELL": "bg-down text-white",
 };
 
-export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: string) => void; selected?: string }) {
+export default function DiscoveryRail({
+  onSelect,
+  selected,
+}: {
+  onSelect: (t: string) => void;
+  selected?: string;
+}) {
   const [tab, setTab] = useState<Tab>("buy");
   const [buy, setBuy] = useState<BuySignalItem[]>([]);
   const [surge, setSurge] = useState<SurgeItem[]>([]);
@@ -29,10 +35,24 @@ export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: st
     setError(null);
     try {
       if (t === "buy") {
-        const r = await fetchBuySignals({ market: "KR", minSignal: "WEAK_BUY", limit: 30, includeSample: false, forceRefresh: force });
+        const r = await fetchBuySignals({
+          market: "KR",
+          minSignal: "WEAK_BUY",
+          limit: 30,
+          includeSample: false,
+          forceRefresh: force,
+        });
         setBuy(r.items);
       } else {
-        const r = await fetchSurgeScan({ market: "KR", krLimit: 60, horizonDays: 10, upperPct: 10, limit: 30, minProbability: 0.2, forceRefresh: force });
+        const r = await fetchSurgeScan({
+          market: "KR",
+          krLimit: 60,
+          horizonDays: 10,
+          upperPct: 10,
+          limit: 30,
+          minProbability: 0.2,
+          forceRefresh: force,
+        });
         setSurge(r.items);
       }
     } catch (e) {
@@ -55,8 +75,16 @@ export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: st
     <div className="card flex h-full flex-col p-3">
       {/* 탭 */}
       <div className="mb-2 flex items-center gap-1 rounded-xl bg-surface p-1">
-        <TabBtn active={tab === "buy"} onClick={() => setTab("buy")} icon={<TrendingUp size={14} />}>매수 신호</TabBtn>
-        <TabBtn active={tab === "surge"} onClick={() => setTab("surge")} icon={<Flame size={14} />}>급등 탐색</TabBtn>
+        <TabBtn
+          active={tab === "buy"}
+          onClick={() => setTab("buy")}
+          icon={<TrendingUp size={14} />}
+        >
+          매수 신호
+        </TabBtn>
+        <TabBtn active={tab === "surge"} onClick={() => setTab("surge")} icon={<Flame size={14} />}>
+          급등 탐색
+        </TabBtn>
         <button
           type="button"
           onClick={() => void load(tab, true)}
@@ -73,19 +101,27 @@ export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: st
         {loading && (tab === "buy" ? buy : surge).length === 0 ? (
           <SkeletonRows />
         ) : tab === "buy" ? (
-          buy.length ? buy.map((it) => (
-            <Row
-              key={it.ticker}
-              active={selected === it.ticker}
-              onClick={() => onSelect(it.ticker)}
-              name={it.name}
-              ticker={it.ticker}
-              changeRate={it.change_rate}
-              right={<span className={`chip text-[10px] px-2 py-0.5 ${signalChip[it.signal]}`}>{it.signal}</span>}
-            />
-          )) : <Empty text="신호 종목 없음" />
-        ) : (
-          surge.length ? surge.map((it) => {
+          buy.length ? (
+            buy.map((it) => (
+              <Row
+                key={it.ticker}
+                active={selected === it.ticker}
+                onClick={() => onSelect(it.ticker)}
+                name={it.name}
+                ticker={it.ticker}
+                changeRate={it.change_rate}
+                right={
+                  <span className={`chip text-[10px] px-2 py-0.5 ${signalChip[it.signal]}`}>
+                    {it.signal}
+                  </span>
+                }
+              />
+            ))
+          ) : (
+            <Empty text="신호 종목 없음" />
+          )
+        ) : surge.length ? (
+          surge.map((it) => {
             const pct = Math.round(it.surge_probability * 100);
             const strong = it.surge_probability >= 0.6;
             return (
@@ -96,17 +132,35 @@ export default function DiscoveryRail({ onSelect, selected }: { onSelect: (t: st
                 name={it.name}
                 ticker={it.ticker}
                 changeRate={it.change_rate}
-                right={<span className={`text-sm font-extrabold tabular ${strong ? "text-up" : "text-sub"}`}>{pct}%</span>}
+                right={
+                  <span
+                    className={`text-sm font-extrabold tabular ${strong ? "text-up" : "text-sub"}`}
+                  >
+                    {pct}%
+                  </span>
+                }
               />
             );
-          }) : <Empty text="급등 후보 없음" />
+          })
+        ) : (
+          <Empty text="급등 후보 없음" />
         )}
       </div>
     </div>
   );
 }
 
-function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
+function TabBtn({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -119,8 +173,20 @@ function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick:
   );
 }
 
-function Row({ active, onClick, name, ticker, changeRate, right }: {
-  active: boolean; onClick: () => void; name: string; ticker: string; changeRate: number; right: React.ReactNode;
+function Row({
+  active,
+  onClick,
+  name,
+  ticker,
+  changeRate,
+  right,
+}: {
+  active: boolean;
+  onClick: () => void;
+  name: string;
+  ticker: string;
+  changeRate: number;
+  right: React.ReactNode;
 }) {
   const up = changeRate >= 0;
   return (
@@ -131,7 +197,13 @@ function Row({ active, onClick, name, ticker, changeRate, right }: {
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold text-ink">{name}</p>
-        <p className="text-[10px] text-muted">{ticker} · <span className={up ? "text-up" : "text-down"}>{up ? "+" : ""}{changeRate.toFixed(2)}%</span></p>
+        <p className="text-[10px] text-muted">
+          {ticker} ·{" "}
+          <span className={up ? "text-up" : "text-down"}>
+            {up ? "+" : ""}
+            {changeRate.toFixed(2)}%
+          </span>
+        </p>
       </div>
       {right}
     </button>

@@ -1,5 +1,6 @@
 export type Period = "1mo" | "3mo" | "6mo" | "1y" | "3y";
-export type Signal = "STRONG BUY" | "BUY" | "WEAK BUY" | "HOLD" | "WEAK SELL" | "SELL" | "STRONG SELL";
+export type Signal =
+  "STRONG BUY" | "BUY" | "WEAK BUY" | "HOLD" | "WEAK SELL" | "SELL" | "STRONG SELL";
 export type Market = "KR" | "US";
 export type MarketFilter = "all" | Market;
 export type MinSignal = "WEAK_BUY" | "BUY" | "STRONG_BUY";
@@ -614,4 +615,3 @@ export interface BuySignalsResponse {
   failed_items: FailedSignalItem[];
   disclaimer: string;
 }
-

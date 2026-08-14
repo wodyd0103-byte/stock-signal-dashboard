@@ -28,8 +28,8 @@ export default function Error({
 
         <h1 className="mt-4 text-xl font-bold text-ink">화면을 불러오지 못했습니다</h1>
         <p className="mt-2 text-sm leading-relaxed text-sub">
-          예상하지 못한 오류가 발생했습니다. 다시 시도해도 같은 화면이 나오면
-          잠시 후 새로고침해 주세요.
+          예상하지 못한 오류가 발생했습니다. 다시 시도해도 같은 화면이 나오면 잠시 후 새로고침해
+          주세요.
         </p>
 
         {error.digest ? (
