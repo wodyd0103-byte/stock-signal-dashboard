@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { BarChart3, Briefcase, FlaskConical, Settings, Sparkles } from "lucide-react";
 import AnalysisView from "@/components/AnalysisView";
 import ComparePanel from "@/components/ComparePanel";
@@ -13,8 +14,10 @@ import SettingsModal from "@/components/SettingsModal";
 import StockSearch from "@/components/StockSearch";
 import ThemeToggle from "@/components/ThemeToggle";
 import WatchlistRail, { type WatchlistRailHandle } from "@/components/WatchlistRail";
-import { addWatchlist, fetchAnalysis } from "@/lib/api";
-import type { AnalysisResponse, MarketSentiment, Period } from "@/lib/types";
+import { useAnalysis } from "@/hooks/queries";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { addWatchlist } from "@/lib/api";
+import type { Period } from "@/lib/types";
 
 type MainTab = "analysis" | "portfolio" | "research";
 
@@ -25,55 +28,49 @@ const TABS: { id: MainTab; label: string; icon: typeof BarChart3 }[] = [
 ];
 
 export default function HomePage() {
-  const [ticker, setTicker] = useState("005930");
+  // useSearchParams는 정적 프리렌더를 클라이언트 렌더로 전환하므로 경계가 필요하다.
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-bg" />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+
+function Dashboard() {
+  const initialTicker = useSearchParams().get("ticker") ?? "005930";
+  const [ticker, setTicker] = useState(initialTicker.toUpperCase());
   const [period, setPeriod] = useState<Period>("1y");
-  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [sentiment, setSentiment] = useState<MarketSentiment | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("analysis");
   const watchlistRef = useRef<WatchlistRailHandle>(null);
 
-  async function load(nextTicker = ticker, nextPeriod = period) {
-    setLoading(true);
-    setToast(null);
-    setMainTab("analysis");
+  // 종목과 기간이 곧 요청이다. 예전에는 load()가 상태를 바꾸고 직접 fetch까지
+  // 했지만, 이제 상태만 바꾸면 훅이 그에 맞는 응답을 들고 온다. 마운트 시
+  // 최초 로드를 위한 이펙트도 필요 없어졌다.
+  const { data: analysis, error, loading } = useAnalysis(ticker, period);
+
+  // 백엔드가 티커를 정규화해 돌려주므로 표시에는 응답 쪽을 우선한다.
+  const activeTicker = analysis?.ticker ?? ticker;
+
+  function select(nextTicker: string, nextPeriod: Period = period) {
     setTicker(nextTicker.toUpperCase());
     setPeriod(nextPeriod);
-    try {
-      const data = await fetchAnalysis(nextTicker, nextPeriod);
-      setAnalysis(data);
-      setTicker(data.ticker);
-      if (data.market_sentiment) setSentiment(data.market_sentiment);
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : "분석 데이터를 불러오지 못했습니다.");
-      setAnalysis(null);
-    } finally {
-      setLoading(false);
-    }
+    setMainTab("analysis");
+    setToast(null);
   }
+
+  const addToWatchlist = useAsyncAction(addWatchlist, { fallbackMessage: "관심종목 추가 실패" });
 
   async function handleAddWatchlist() {
     if (!analysis) return;
-    try {
-      await addWatchlist(analysis.ticker);
-      setToast(`${analysis.ticker} 관심종목에 추가했습니다.`);
-      watchlistRef.current?.reload();
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : "관심종목 추가 실패");
-    }
+    const added = await addToWatchlist.run(analysis.ticker);
+    if (!added) return; // 실패 메시지는 addToWatchlist.error가 들고 있다
+    setToast(`${analysis.ticker} 관심종목에 추가했습니다.`);
+    watchlistRef.current?.reload();
   }
 
-  // 마운트 시 최초 분석. load()가 동기적으로 setLoading(true)를 호출하기 때문에
-  // set-state-in-effect에 걸린다. 데이터 페칭을 TanStack Query로 옮기면 이 이펙트
-  // 자체가 사라지므로, 그때까지만 억제한다.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load(params.get("ticker") ?? "005930", "1y");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const toastMessage = toast ?? addToWatchlist.error;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -90,14 +87,14 @@ export default function HomePage() {
           </div>
           <div className="order-last min-w-0 grow basis-full lg:order-none lg:basis-0">
             <StockSearch
-              defaultTicker={ticker}
+              defaultTicker={activeTicker}
               defaultPeriod={period}
-              onSearch={(t, p) => void load(t, p)}
+              onSearch={select}
               loading={loading}
             />
           </div>
           <div className="ml-auto flex items-center gap-1 sm:ml-0 sm:gap-3">
-            <MiniSentiment sentiment={sentiment} />
+            <MiniSentiment sentiment={analysis?.market_sentiment ?? null} />
             <ThemeToggle />
             <button
               type="button"
@@ -117,11 +114,11 @@ export default function HomePage() {
           {/* 좌측 레일 */}
           <aside className="flex flex-col gap-4 lg:sticky lg:top-[72px] lg:h-[calc(100vh-88px)]">
             <div className="min-h-0 flex-1">
-              <DiscoveryRail onSelect={(t) => void load(t, period)} selected={analysis?.ticker} />
+              <DiscoveryRail onSelect={(t) => select(t)} selected={analysis?.ticker} />
             </div>
             <WatchlistRail
               ref={watchlistRef}
-              onSelect={(t) => void load(t, period)}
+              onSelect={(t) => select(t)}
               selected={analysis?.ticker}
             />
           </aside>
@@ -155,13 +152,14 @@ export default function HomePage() {
               <AnalysisView
                 analysis={analysis}
                 loading={loading}
+                error={error}
                 period={period}
                 onAddWatchlist={handleAddWatchlist}
               />
-              <ComparePanel currentTicker={ticker} onSelect={(t) => void load(t, period)} />
+              <ComparePanel currentTicker={activeTicker} onSelect={(t) => select(t)} />
             </div>
             <div className={mainTab === "portfolio" ? "" : "hidden"}>
-              <PortfolioPanel onSelect={(t) => void load(t, period)} />
+              <PortfolioPanel onSelect={(t) => select(t)} />
             </div>
             <div className={mainTab === "research" ? "space-y-4" : "hidden"}>
               <RetrospectivePanel />
@@ -172,9 +170,9 @@ export default function HomePage() {
       </main>
 
       {/* 토스트 */}
-      {toast ? (
+      {toastMessage ? (
         <div className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-bg shadow-cardHover">
-          {toast}
+          {toastMessage}
         </div>
       ) : null}
 

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, FlaskConical } from "lucide-react";
-import { fetchFactorIC } from "@/lib/api";
-import type { FactorIC, ICReport } from "@/lib/types";
+import { useFactorIC } from "@/hooks/queries";
+import type { FactorIC } from "@/lib/types";
 
 const horizons = [3, 5, 10];
 
@@ -11,31 +11,18 @@ const horizons = [3, 5, 10];
 export default function ICPanel() {
   const [open, setOpen] = useState(false);
   const [horizon, setHorizon] = useState(5);
-  const [report, setReport] = useState<ICReport | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function load(h = horizon, force = false) {
-    setLoading(true);
-    setError(null);
-    try {
-      setReport(await fetchFactorIC({ horizonDays: h, universeSize: 40, forceRefresh: force }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "IC 계산 실패");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && !report) void load();
-  }
+  // 접혀 있는 동안에는 요청하지 않는다. 펴는 순간 처음 부르고, 시계를 바꾸면
+  // 그 시계로 다시 부르되 이미 본 시계는 캐시에서 즉시 나온다.
+  const { data: report, error, loading, refetch } = useFactorIC(horizon, open);
 
   return (
     <section className="card">
-      <button type="button" onClick={toggle} className="flex w-full items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between"
+      >
         <div className="flex items-center gap-2 text-left">
           <FlaskConical size={18} className="text-toss" />
           <div>
@@ -60,21 +47,14 @@ export default function ICPanel() {
                 <button
                   key={h}
                   type="button"
-                  onClick={() => {
-                    setHorizon(h);
-                    void load(h);
-                  }}
+                  onClick={() => setHorizon(h)}
                   className={`h-7 rounded-lg px-3 text-xs font-bold transition-colors ${horizon === h ? "bg-bg text-ink shadow-card" : "text-muted hover:text-sub"}`}
                 >
                   {h}일
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => void load(horizon, true)}
-              className="btn-ghost ml-auto text-xs"
-            >
+            <button type="button" onClick={refetch} className="btn-ghost ml-auto text-xs">
               재계산
             </button>
           </div>

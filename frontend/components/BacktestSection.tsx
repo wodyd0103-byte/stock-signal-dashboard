@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Play } from "lucide-react";
 import BacktestChart from "@/components/BacktestChart";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { fetchBacktest } from "@/lib/api";
 import type { BacktestResponse, BacktestStrategy, Period } from "@/lib/types";
 
@@ -18,19 +19,14 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
   const [strategy, setStrategy] = useState<BacktestStrategy>("regime_adjusted_strategy");
   const [capital, setCapital] = useState(10_000_000);
   const [result, setResult] = useState<BacktestResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // 실행 버튼을 눌러야 도는 계산이라 조회 훅이 아니라 액션 훅을 쓴다.
+  const backtest = useAsyncAction(fetchBacktest, { fallbackMessage: "백테스트 실패" });
+  const { pending: loading, error } = backtest;
 
   async function run() {
-    setLoading(true);
-    setError(null);
-    try {
-      setResult(await fetchBacktest(ticker, period, capital, strategy));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "백테스트 실패");
-    } finally {
-      setLoading(false);
-    }
+    const res = await backtest.run(ticker, period, capital, strategy);
+    if (res) setResult(res);
   }
 
   return (

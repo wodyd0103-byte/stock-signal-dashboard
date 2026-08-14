@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Flame, RefreshCcw, TrendingUp } from "lucide-react";
-import { fetchBuySignals, fetchSurgeScan } from "@/lib/api";
-import type { BuySignalItem, Signal, SurgeItem } from "@/lib/types";
+import { useBuySignals, useSurgeScan } from "@/hooks/queries";
+import type { Signal } from "@/lib/types";
 
 type Tab = "buy" | "surge";
 
@@ -25,51 +25,18 @@ export default function DiscoveryRail({
   selected?: string;
 }) {
   const [tab, setTab] = useState<Tab>("buy");
-  const [buy, setBuy] = useState<BuySignalItem[]>([]);
-  const [surge, setSurge] = useState<SurgeItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function load(t: Tab, force = false) {
-    setLoading(true);
-    setError(null);
-    try {
-      if (t === "buy") {
-        const r = await fetchBuySignals({
-          market: "KR",
-          minSignal: "WEAK_BUY",
-          limit: 30,
-          includeSample: false,
-          forceRefresh: force,
-        });
-        setBuy(r.items);
-      } else {
-        const r = await fetchSurgeScan({
-          market: "KR",
-          krLimit: 60,
-          horizonDays: 10,
-          upperPct: 10,
-          limit: 30,
-          minProbability: 0.2,
-          forceRefresh: force,
-        });
-        setSurge(r.items);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "불러오기 실패");
-    } finally {
-      setLoading(false);
-    }
-  }
+  // 각 탭은 열려 있을 때만 요청한다. 훅이 응답을 들고 있으므로 탭을 오갈 때
+  // 다시 부르지 않는다 — 예전에 목록을 컴포넌트 state에 쌓아두던 것과 같은
+  // 결과이고, 늦게 온 응답이 다른 탭 화면을 덮어쓰는 문제는 사라졌다.
+  const buySignals = useBuySignals(tab === "buy");
+  const surgeScan = useSurgeScan(tab === "surge");
+  const active = tab === "buy" ? buySignals : surgeScan;
 
-  // 탭을 처음 열 때만 로드. load()의 동기 setLoading(true) 때문에 규칙에 걸린다.
-  // TanStack Query 도입 시 제거 예정.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (tab === "buy" && buy.length === 0) void load("buy");
-    if (tab === "surge" && surge.length === 0) void load("surge");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  const buy = buySignals.data ?? [];
+  const surge = surgeScan.data ?? [];
+  const loading = active.loading;
+  const error = active.error;
 
   return (
     <div className="card flex h-full flex-col p-3">
@@ -87,7 +54,7 @@ export default function DiscoveryRail({
         </TabBtn>
         <button
           type="button"
-          onClick={() => void load(tab, true)}
+          onClick={active.refetch}
           className="ml-auto rounded-lg p-2 text-muted hover:bg-bg hover:text-ink"
           title="새로고침"
         >

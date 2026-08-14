@@ -2,46 +2,32 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Target } from "lucide-react";
-import { evaluateRetro, fetchRetroSummary } from "@/lib/api";
-import type { RetroSummary } from "@/lib/types";
+import { useRetroSummary } from "@/hooks/queries";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { evaluateRetro } from "@/lib/api";
 
 /** 회고 패널 — 내 추천이 실제로 맞았나. 측정 인프라. */
 export default function RetrospectivePanel() {
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<RetroSummary | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    try {
-      setData(await fetchRetroSummary());
-    } catch {
-      /* noop */
-    } finally {
-      setLoading(false);
-    }
-  }
+  // 접혀 있는 동안에는 요청하지 않는다.
+  const { data, loading, refetch } = useRetroSummary(open);
+
+  // 채점은 서버 상태를 바꾸므로 끝나면 요약을 다시 읽는다.
+  const evaluate = useAsyncAction(evaluateRetro);
 
   async function reEvaluate() {
-    setLoading(true);
-    try {
-      setData(await evaluateRetro());
-    } catch {
-      /* noop */
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && !data) void load();
+    await evaluate.run();
+    refetch();
   }
 
   return (
     <section className="card">
-      <button type="button" onClick={toggle} className="flex w-full items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between"
+      >
         <div className="flex items-center gap-2 text-left">
           <Target size={18} className="text-up" />
           <div>
@@ -58,7 +44,7 @@ export default function RetrospectivePanel() {
 
       {open ? (
         <div className="mt-4 space-y-4">
-          {loading && !data ? (
+          {(loading || evaluate.pending) && !data ? (
             <div className="h-24 animate-pulse rounded-xl bg-surface" />
           ) : data ? (
             <>
@@ -155,8 +141,13 @@ export default function RetrospectivePanel() {
                 </div>
               ) : null}
 
-              <button type="button" onClick={() => void reEvaluate()} className="btn-ghost text-xs">
-                지금 채점
+              <button
+                type="button"
+                onClick={() => void reEvaluate()}
+                disabled={evaluate.pending}
+                className="btn-ghost text-xs disabled:opacity-50"
+              >
+                {evaluate.pending ? "채점 중…" : "지금 채점"}
               </button>
             </>
           ) : (

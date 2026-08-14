@@ -21,12 +21,23 @@ import type { AnalysisResponse, Period } from "@/lib/types";
 interface Props {
   analysis: AnalysisResponse | null;
   loading: boolean;
+  /** 조회 실패 메시지. 예전에는 토스트로 스쳐 지나가 원인을 읽을 새가 없었다. */
+  error?: string | null;
   period: Period;
   onAddWatchlist: () => void;
 }
 
-export default function AnalysisView({ analysis, loading, period, onAddWatchlist }: Props) {
+export default function AnalysisView({ analysis, loading, error, period, onAddWatchlist }: Props) {
   if (!analysis && loading) return <LoadingSkeleton />;
+  if (!analysis && error) {
+    return (
+      <div className="card text-center">
+        <AlertCircle size={20} className="mx-auto text-down" />
+        <p className="mt-2 text-base font-bold text-ink">분석을 불러오지 못했습니다</p>
+        <p className="mt-1 text-sm text-muted">{error}</p>
+      </div>
+    );
+  }
   if (!analysis) {
     return (
       <div className="card text-center text-sub">

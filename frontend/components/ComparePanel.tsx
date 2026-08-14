@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { GitCompareArrows } from "lucide-react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { fetchCompare } from "@/lib/api";
 import type { CompareItem, CompareResponse } from "@/lib/types";
 
@@ -33,8 +34,13 @@ export default function ComparePanel({
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(currentTicker ?? "");
   const [data, setData] = useState<CompareResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  // 입력이 틀렸을 때의 메시지. 요청 자체의 실패는 compare.error가 들고 있다.
+  const [inputError, setInputError] = useState<string | null>(null);
+
+  const compare = useAsyncAction(fetchCompare, { fallbackMessage: "비교 실패" });
+  const loading = compare.pending;
+  // 200으로 오면서 본문에 error를 담아 오는 경우가 있어 셋을 같이 본다.
+  const err = inputError ?? compare.error ?? data?.error ?? null;
 
   async function run() {
     const tickers = input
@@ -42,20 +48,12 @@ export default function ComparePanel({
       .map((t) => t.trim())
       .filter(Boolean);
     if (tickers.length < 2) {
-      setErr("종목 2~4개를 쉼표로 구분해 입력하세요. 예: 005930, 000660");
+      setInputError("종목 2~4개를 쉼표로 구분해 입력하세요. 예: 005930, 000660");
       return;
     }
-    setLoading(true);
-    setErr(null);
-    try {
-      const res = await fetchCompare(tickers.slice(0, 4));
-      setData(res);
-      if (res.error) setErr(res.error);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "비교 실패");
-    } finally {
-      setLoading(false);
-    }
+    setInputError(null);
+    const res = await compare.run(tickers.slice(0, 4));
+    if (res) setData(res);
   }
 
   const valid = (data?.items ?? []).filter((i) => !i.error);
