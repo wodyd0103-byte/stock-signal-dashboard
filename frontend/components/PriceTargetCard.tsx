@@ -8,7 +8,12 @@ interface Props {
   priceTarget?: PriceTarget | null;
 }
 
-export default function PriceTargetCard({ currentPrice, longTerm, optimalExit, priceTarget }: Props) {
+export default function PriceTargetCard({
+  currentPrice,
+  longTerm,
+  optimalExit,
+  priceTarget,
+}: Props) {
   if (!optimalExit && !priceTarget && (!longTerm || longTerm.length === 0)) {
     return null;
   }
@@ -16,14 +21,10 @@ export default function PriceTargetCard({ currentPrice, longTerm, optimalExit, p
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       {/* 최적 매도 시점 */}
-      {optimalExit ? (
-        <ExitCard exit={optimalExit} currentPrice={currentPrice} />
-      ) : null}
+      {optimalExit ? <ExitCard exit={optimalExit} currentPrice={currentPrice} /> : null}
 
       {/* 장기 목표가 */}
-      {priceTarget ? (
-        <TargetCard target={priceTarget} />
-      ) : null}
+      {priceTarget ? <TargetCard target={priceTarget} /> : null}
 
       {/* 장기 예측 행 (full width) */}
       {longTerm && longTerm.length > 0 ? (
@@ -43,10 +44,15 @@ export default function PriceTargetCard({ currentPrice, longTerm, optimalExit, p
                 <div key={p.horizon_days} className="rounded-xl bg-surface p-4">
                   <div className="flex items-baseline justify-between">
                     <p className="text-sm font-bold text-sub">
-                      {p.horizon_days === 60 ? "약 3개월 후" : p.horizon_days === 120 ? "약 6개월 후" : `${p.horizon_days}일 후`}
+                      {p.horizon_days === 60
+                        ? "약 3개월 후"
+                        : p.horizon_days === 120
+                          ? "약 6개월 후"
+                          : `${p.horizon_days}일 후`}
                     </p>
                     <p className={`text-sm font-bold tabular ${up ? "text-up" : "text-down"}`}>
-                      {up ? "+" : ""}{p.expected_return_pct.toFixed(2)}%
+                      {up ? "+" : ""}
+                      {p.expected_return_pct.toFixed(2)}%
                     </p>
                   </div>
                   <p className="mt-2 text-2xl font-extrabold text-ink tabular">
@@ -54,9 +60,14 @@ export default function PriceTargetCard({ currentPrice, longTerm, optimalExit, p
                   </p>
                   <div className="mt-3 flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
-                      <div className="h-1.5 rounded-full bg-toss" style={{ width: `${p.confidence_score}%` }} />
+                      <div
+                        className="h-1.5 rounded-full bg-toss"
+                        style={{ width: `${p.confidence_score}%` }}
+                      />
                     </div>
-                    <span className="text-xs font-bold text-muted tabular">신뢰 {p.confidence_score}</span>
+                    <span className="text-xs font-bold text-muted tabular">
+                      신뢰 {p.confidence_score}
+                    </span>
                   </div>
                 </div>
               );
@@ -94,7 +105,8 @@ function ExitCard({ exit, currentPrice }: { exit: OptimalExit; currentPrice: num
         <div className="flex items-baseline justify-between">
           <p className="text-xs font-bold text-muted">예상 가격</p>
           <p className={`text-xs font-bold tabular ${up ? "text-up" : "text-down"}`}>
-            {up ? "+" : ""}{exit.expected_return_pct.toFixed(2)}%
+            {up ? "+" : ""}
+            {exit.expected_return_pct.toFixed(2)}%
           </p>
         </div>
         <p className="mt-1 text-2xl font-extrabold text-ink tabular">
@@ -108,7 +120,10 @@ function ExitCard({ exit, currentPrice }: { exit: OptimalExit; currentPrice: num
 
       <div className="mt-3 flex items-center gap-2">
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
-          <div className="h-1.5 rounded-full bg-toss" style={{ width: `${exit.confidence_score}%` }} />
+          <div
+            className="h-1.5 rounded-full bg-toss"
+            style={{ width: `${exit.confidence_score}%` }}
+          />
         </div>
         <span className="text-xs font-bold text-muted tabular">신뢰 {exit.confidence_score}</span>
       </div>
@@ -125,8 +140,10 @@ function ExitCard({ exit, currentPrice }: { exit: OptimalExit; currentPrice: num
 function TargetCard({ target }: { target: PriceTarget }) {
   const up = target.expected_return_pct >= 0;
   const months = Math.round(target.horizon_days / 21);
-  const upConservative = (target.conservative_price - target.current_price) / target.current_price * 100;
-  const upOptimistic = (target.optimistic_price - target.current_price) / target.current_price * 100;
+  const upConservative =
+    ((target.conservative_price - target.current_price) / target.current_price) * 100;
+  const upOptimistic =
+    ((target.optimistic_price - target.current_price) / target.current_price) * 100;
 
   return (
     <div className="card">
@@ -147,7 +164,9 @@ function TargetCard({ target }: { target: PriceTarget }) {
         <span className="text-xs font-medium text-muted">원</span>
       </div>
       <p className={`mt-1 text-base font-bold tabular ${up ? "text-up" : "text-down"}`}>
-        {up ? "+" : ""}{target.expected_return_pct.toFixed(2)}% <span className="text-xs font-medium text-muted">대비 현재가</span>
+        {up ? "+" : ""}
+        {target.expected_return_pct.toFixed(2)}%{" "}
+        <span className="text-xs font-medium text-muted">대비 현재가</span>
       </p>
 
       {/* 시나리오 3종 */}
@@ -207,7 +226,8 @@ function ScenarioRow({
       <div className="flex items-baseline gap-2">
         <p className={`text-sm tabular ${tone}`}>{price.toLocaleString()}</p>
         <p className={`text-xs font-bold tabular ${up ? "text-up" : "text-down"}`}>
-          {up ? "+" : ""}{changePct.toFixed(1)}%
+          {up ? "+" : ""}
+          {changePct.toFixed(1)}%
         </p>
       </div>
     </div>

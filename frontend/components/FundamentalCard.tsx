@@ -8,7 +8,10 @@ export default function FundamentalCard({ f }: { f: Fundamental }) {
     { label: "PER", value: f.per != null ? `${f.per.toFixed(1)}배` : "-" },
     { label: "PBR", value: f.pbr != null ? `${f.pbr.toFixed(2)}배` : "-" },
     { label: "ROE(추정)", value: f.roe_est != null ? `${f.roe_est.toFixed(1)}%` : "-" },
-    { label: "배당수익률", value: f.dividend_yield != null ? `${f.dividend_yield.toFixed(2)}%` : "-" },
+    {
+      label: "배당수익률",
+      value: f.dividend_yield != null ? `${f.dividend_yield.toFixed(2)}%` : "-",
+    },
     { label: "EPS", value: f.eps != null ? f.eps.toLocaleString() : "-" },
     { label: "52주 위치", value: f.pos_52w != null ? `${f.pos_52w.toFixed(0)}%` : "-" },
   ];
@@ -24,7 +27,8 @@ export default function FundamentalCard({ f }: { f: Fundamental }) {
           </h2>
         </div>
         <span className="chip" style={{ background: `${color}1A`, color }}>
-          {f.score >= 65 ? "저평가 우호" : f.score <= 35 ? "밸류 부담" : "중립"} {f.score.toFixed(0)}
+          {f.score >= 65 ? "저평가 우호" : f.score <= 35 ? "밸류 부담" : "중립"}{" "}
+          {f.score.toFixed(0)}
         </span>
       </div>
 

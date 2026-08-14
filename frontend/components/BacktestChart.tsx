@@ -42,8 +42,20 @@ export default function BacktestChart({ data }: { data: BacktestPoint[] }) {
               </linearGradient>
             </defs>
             <CartesianGrid stroke="rgb(var(--c-surface))" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }} minTickGap={40} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }} width={56} unit="%" tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }}
+              minTickGap={40}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "rgb(var(--c-muted))" }}
+              width={56}
+              unit="%"
+              tickLine={false}
+              axisLine={false}
+            />
             <Tooltip
               contentStyle={{
                 background: "rgb(var(--c-ink))",
@@ -57,8 +69,22 @@ export default function BacktestChart({ data }: { data: BacktestPoint[] }) {
               labelStyle={{ color: "rgb(var(--c-faint))", marginBottom: 4 }}
               formatter={(value: number) => `${value.toFixed(2)}%`}
             />
-            <Area type="monotone" dataKey="cumulative_return" name="신호 전략" stroke="#3182F6" strokeWidth={2.4} fill="url(#stratGrad)" />
-            <Line type="monotone" dataKey="hold_return" name="보유 전략" stroke="#F59F00" strokeWidth={2} dot={false} />
+            <Area
+              type="monotone"
+              dataKey="cumulative_return"
+              name="신호 전략"
+              stroke="#3182F6"
+              strokeWidth={2.4}
+              fill="url(#stratGrad)"
+            />
+            <Line
+              type="monotone"
+              dataKey="hold_return"
+              name="보유 전략"
+              stroke="#F59F00"
+              strokeWidth={2}
+              dot={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

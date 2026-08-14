@@ -84,7 +84,9 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-ink shrink-0">
             <Sparkles size={20} className="text-toss" />
-            <span className="hidden sm:inline">Quant <span className="text-toss">Insight</span></span>
+            <span className="hidden sm:inline">
+              Quant <span className="text-toss">Insight</span>
+            </span>
           </div>
           <div className="order-last min-w-0 grow basis-full lg:order-none lg:basis-0">
             <StockSearch
@@ -117,7 +119,11 @@ export default function HomePage() {
             <div className="min-h-0 flex-1">
               <DiscoveryRail onSelect={(t) => void load(t, period)} selected={analysis?.ticker} />
             </div>
-            <WatchlistRail ref={watchlistRef} onSelect={(t) => void load(t, period)} selected={analysis?.ticker} />
+            <WatchlistRail
+              ref={watchlistRef}
+              onSelect={(t) => void load(t, period)}
+              selected={analysis?.ticker}
+            />
           </aside>
 
           {/* 메인: 3탭 (분석/포트폴리오/리서치) */}
@@ -132,7 +138,9 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setMainTab(t.id)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition ${
-                      active ? "bg-toss text-white shadow-sm" : "text-muted hover:bg-surface hover:text-ink"
+                      active
+                        ? "bg-toss text-white shadow-sm"
+                        : "text-muted hover:bg-surface hover:text-ink"
                     }`}
                     aria-current={active ? "page" : undefined}
                   >

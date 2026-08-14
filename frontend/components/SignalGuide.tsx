@@ -54,7 +54,10 @@ function GuideTable({ title, rows, accent }: { title: string; rows: string[][]; 
       <h3 className={`px-3 py-2 text-xs font-bold ${accent}`}>{title}</h3>
       <div className="rounded-lg bg-bg p-1">
         {rows.map(([range, label]) => (
-          <div key={`${title}-${range}`} className="grid grid-cols-[80px_1fr] gap-2 px-2.5 py-1.5 text-xs">
+          <div
+            key={`${title}-${range}`}
+            className="grid grid-cols-[80px_1fr] gap-2 px-2.5 py-1.5 text-xs"
+          >
             <span className="font-bold text-ink tabular">{range}</span>
             <span className="text-sub leading-5">{label}</span>
           </div>
