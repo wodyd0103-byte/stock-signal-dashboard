@@ -71,7 +71,7 @@ test("늦게 온 응답이 그 사이 고른 값을 덮어쓰지 않는다", asy
 
   // IC 응답을 요청한 시계로 되돌려주되, 3일짜리만 느리게 준다.
   const icFixture = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "fixtures", "ic.json"), "utf8"),
+    fs.readFileSync(path.join(__dirname, "..", "demo-data", "ic.json"), "utf8"),
   ) as { horizon_days: number };
   await page.route("**/ic/factors**", async (route) => {
     const horizon = Number(new URL(route.request().url()).searchParams.get("horizon_days"));
