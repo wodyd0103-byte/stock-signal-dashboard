@@ -2,7 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Page } from "@playwright/test";
 
-const FIXTURES = path.join(__dirname, "fixtures");
+// 배포 데모(`app/api/demo`)와 같은 파일을 본다. 둘이 갈라지면 테스트가 통과한
+// 화면과 사람들이 링크로 보는 화면이 달라진다.
+const FIXTURES = path.join(__dirname, "..", "demo-data");
 
 /**
  * 경로 -> 픽스처 파일.

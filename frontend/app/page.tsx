@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { BarChart3, Briefcase, FlaskConical, Settings, Sparkles } from "lucide-react";
 import AnalysisView from "@/components/AnalysisView";
 import ComparePanel from "@/components/ComparePanel";
+import DemoBanner from "@/components/DemoBanner";
 import DiscoveryRail from "@/components/DiscoveryRail";
 import ICPanel from "@/components/ICPanel";
 import PortfolioPanel from "@/components/PortfolioPanel";
@@ -74,6 +75,8 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-bg">
+      <DemoBanner />
+
       {/* 상단바 */}
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur-md">
         {/* 좁은 화면에서는 검색이 아래 줄로 내려간다. 한 줄에 다 넣으면 검색 폼의

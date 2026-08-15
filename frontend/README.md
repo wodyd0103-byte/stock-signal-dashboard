@@ -47,11 +47,13 @@ app/page.tsx  (유일한 라우트, 클라이언트 컴포넌트)
 ## 디렉터리
 
 ```
-app/         라우트, 레이아웃, 전역 CSS, 에러 바운더리
+app/         라우트, 레이아웃, 전역 CSS, 에러 바운더리, 데모 API
 components/  화면 컴포넌트 (전부 이 한 층, 하위 폴더 없음)
+hooks/       데이터 페칭 훅 (useAsyncData / useAsyncAction / queries)
 lib/api.ts   백엔드 호출 전부
 lib/types.ts API 응답 타입
-tests/       Playwright 스펙과 캡처해둔 응답 픽스처
+demo-data/   캡처해둔 실제 백엔드 응답. 테스트와 데모 배포가 같이 쓴다
+tests/       Playwright 스펙
 ```
 
 `app/`에는 `error.tsx`, `not-found.tsx`, `global-error.tsx`가 있습니다. `global-error.tsx`는 루트 레이아웃을 **대체**하므로 `<html>`/`<body>`, `globals.css` import, 테마 스크립트를 자체적으로 들고 있어야 합니다.
@@ -63,9 +65,13 @@ tests/       Playwright 스펙과 캡처해둔 응답 픽스처
 - 네트워크 실패 → "백엔드 서버에 연결할 수 없습니다" + 현재 API 주소
 - HTTP 오류 → FastAPI의 `detail`, 또는 `detail.provider_error`를 꺼내 메시지로
 
-컴포넌트는 각자 마운트 시점에 `useEffect`로 자기 데이터를 가져옵니다. 전역 상태나 캐시 계층은 없습니다. `page.tsx`, `DiscoveryRail`, `PortfolioPanel`에 `react-hooks/set-state-in-effect` 억제 주석이 있는 것도 이 구조 때문입니다 — 이펙트 안에서 곧바로 `setLoading(true)`를 부릅니다. TanStack Query로 옮기면 이펙트째 사라집니다.
+컴포넌트는 `lib/api.ts`를 직접 부르지 않고 `hooks/`를 지납니다.
 
-억제 주석은 규칙이 보고하는 **호출 줄 바로 위**에 둡니다. 한 줄짜리 문장 위에 두면 포맷터가 문장을 여러 줄로 펴는 순간 덮지 못합니다.
+- **`useAsyncData(fetcher, deps)`** — 화면이 그리는 데 필요한 조회. 응답을 **요청 키**에 저장하고 화면은 현재 키만 읽습니다. 그래서 탭이나 기간을 빠르게 바꿔도 늦게 도착한 응답이 새 값을 덮어쓰지 못합니다. 같은 키는 다시 요청하지 않고, `refetch()`는 키를 새로 만들어 서버 캐시까지 무시합니다. `loading`은 state가 아니라 "현재 키의 응답이 아직 없음"으로 계산됩니다.
+- **`useAsyncAction(fn)`** — 클릭이 시작하는 요청(추가·삭제·비교·백테스트·리밸런싱). 캐시하지 않고, `run()`이 값 또는 `null`을 돌려주며 실패 메시지는 `error`에 담습니다. 언마운트 뒤에는 state를 건드리지 않습니다.
+- **`hooks/queries.ts`** — 앱이 하는 조회를 이름으로 제공합니다. 엔드포인트 파라미터가 컴포넌트로 새지 않게 하는 층입니다.
+
+전역 상태나 앱 단위 캐시 계층은 없습니다. 서버 상태를 화면 간에 공유·무효화해야 할 때가 TanStack Query를 들일 시점이고, 훅 인터페이스(`data`/`error`/`loading`/`refetch`)를 거기에 맞춰 두었습니다. 지금은 관심종목 추가처럼 다른 화면을 갱신해야 하는 경우 `page.tsx`가 ref로 `WatchlistRail`의 새로고침을 부릅니다.
 
 ## 스타일
 
@@ -75,6 +81,29 @@ tests/       Playwright 스펙과 캡처해둔 응답 픽스처
 - 숫자에는 `.tabular`(tabular-nums)를 붙입니다. 가격과 등락률이 갱신될 때 폭이 흔들리지 않습니다.
 - `prefers-reduced-motion`에서 애니메이션을 전부 끕니다.
 - 테마 깜빡임(FOUC)은 `layout.tsx`의 인라인 스크립트가 렌더 전에 저장된 테마를 적용해 막습니다. `ThemeToggle`은 `useSyncExternalStore`로 `html.dark`를 직접 구독하므로 테마 상태의 복사본을 들고 있지 않습니다.
+
+## 배포 (Vercel) 와 데모 모드
+
+Vercel에는 이 Next.js 앱만 올라갑니다. FastAPI 백엔드는 pykrx·yfinance로 외부 시세를 받아오고 SQLite에 쓰기 때문에 함께 올릴 수 없습니다. 그렇다고 프론트만 올리면 링크를 연 사람은 카드마다 "백엔드 서버에 연결할 수 없습니다"만 보게 됩니다.
+
+그래서 **데모 모드**가 있습니다. `app/api/demo/[...path]/route.ts`가 `demo-data/`에 받아둔 실제 백엔드 응답을 백엔드와 같은 경로 모양으로 돌려줍니다. 숫자와 해석 문장이 진짜라 화면이 제대로 채워지고, 값이 고정이라는 사실은 상단 배너와 데이터 출처 줄이 계속 알립니다. 쓰기 요청은 405로 막고 이유를 돌려줍니다.
+
+배포 설정은 두 가지뿐입니다.
+
+| 항목           | 값                   |
+| -------------- | -------------------- |
+| Root Directory | `frontend`           |
+| 환경변수       | `NEXT_PUBLIC_DEMO=1` |
+
+`NEXT_PUBLIC_API_BASE_URL`을 설정하면 그쪽이 우선하므로, 백엔드를 어딘가에 띄웠다면 그 주소를 넣으면 됩니다.
+
+로컬에서 데모 모드를 확인하려면:
+
+```powershell
+cd frontend
+$env:NEXT_PUBLIC_DEMO="1"; npm run build
+npx next start --port 3200
+```
 
 ## 품질 검사
 
@@ -93,14 +122,16 @@ npx playwright test    # 백엔드 없이 돈다
 
 `tests/horizontal-overflow.spec.ts`가 375 / 768 / 1024 / 1440px에서 탭 3개를 모두 눌러가며 `document.documentElement.scrollWidth === clientWidth`를 확인합니다. 좁은 화면 가로 스크롤이 세 번 재발한 적이 있어 자동으로 막습니다. jsdom에는 레이아웃 엔진이 없어 이 검사는 진짜 브라우저에서만 의미가 있습니다.
 
-API 응답은 `tests/fixtures`에 실제 백엔드 응답을 떠둔 것을 `tests/mock-api.ts`가 가로채 돌려줍니다. 파이썬도 네트워크도 필요 없습니다. 라우트 매칭은 부분 문자열이 아니라 정규식으로 합니다 — `/analysis`는 `/stocks/{ticker}/analysis`와 `/portfolio/analysis` 양쪽에 걸립니다.
+`tests/data-fetching.spec.ts`는 요청 수를 세서 훅의 약속을 확인합니다 — 탭에 돌아올 때 재요청하지 않는지, 새로고침이 `force_refresh=true`를 보내는지, 늦게 온 응답이 그 사이 고른 값을 덮지 않는지, 실패가 조용히 삼켜지지 않는지. `tests/demo-api.spec.ts`는 배포용 데모 API의 경로 모양을 확인합니다.
 
-픽스처는 Prettier 대상에서 제외돼 있습니다. 다시 캡처했을 때 진짜 변경분만 보이게 하려는 것입니다.
+API 응답은 `demo-data/`에 실제 백엔드 응답을 떠둔 것을 `tests/mock-api.ts`가 가로채 돌려줍니다. 파이썬도 네트워크도 필요 없습니다. 데모 배포도 같은 파일을 쓰므로, 테스트가 통과한 화면과 링크로 보이는 화면이 갈라지지 않습니다. 라우트 매칭은 부분 문자열이 아니라 정규식으로 합니다 — `/analysis`는 `/stocks/{ticker}/analysis`와 `/portfolio/analysis` 양쪽에 걸립니다.
+
+`demo-data/*.json`은 Prettier 대상에서 제외돼 있습니다. 다시 캡처했을 때 진짜 변경분만 보이게 하려는 것입니다.
 
 ## 알려진 한계
 
-- 컴포넌트 단위 테스트가 없습니다. Playwright 스펙은 레이아웃 회귀 전용입니다.
-- API 훅 계층이 없습니다(`lib/api.ts` 하나). 서버 상태 캐싱·재시도·중복 제거도 없습니다.
+- 컴포넌트 단위 테스트가 없습니다. Playwright 스펙은 레이아웃 회귀와 페칭 동작 전용입니다.
+- 캐시는 컴포넌트 단위입니다. 언마운트되면 사라지고 화면 간에 공유되지 않습니다.
 - 검색에 디바운스가 없고, `DiscoveryRail`은 `limit: 30` 고정이라 페이지네이션이 없습니다.
 - 응답 런타임 검증이 없습니다. 타입은 컴파일 타임 선언일 뿐입니다.
 - 접근성 속성이 최소한만 붙어 있습니다.

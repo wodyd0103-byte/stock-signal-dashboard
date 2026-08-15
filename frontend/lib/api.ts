@@ -19,7 +19,14 @@ import type {
   WatchlistSummary,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+/**
+ * 데모 배포는 백엔드 없이 돌아간다. 값이 고정이라는 사실은 DemoBanner가 알린다.
+ * 자세한 배경은 `app/api/demo/[...path]/route.ts`.
+ */
+export const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? (IS_DEMO ? "/api/demo" : "http://127.0.0.1:8000/api");
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response;
