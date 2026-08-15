@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useImperativeHandle, forwardRef, useState } from "react";
+import { useImperativeHandle, forwardRef } from "react";
 import { Star, Trash2 } from "lucide-react";
-import { deleteWatchlist, fetchWatchlist } from "@/lib/api";
-import type { Signal, WatchlistSummary } from "@/lib/types";
+import { useWatchlist } from "@/hooks/queries";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { deleteWatchlist } from "@/lib/api";
+import type { Signal } from "@/lib/types";
 
 const signalChip: Record<Signal, string> = {
   "STRONG BUY": "bg-up text-white",
@@ -25,33 +27,21 @@ interface Props {
 }
 
 const WatchlistRail = forwardRef<WatchlistRailHandle, Props>(({ onSelect, selected }, ref) => {
-  const [items, setItems] = useState<WatchlistSummary[]>([]);
-  const [loading, setLoading] = useState(false);
+  // 오류는 화면에 띄우지 않는다. 관심종목이 비었거나 백엔드가 안 떠 있는 것이
+  // 대부분이고, 그때는 아래 빈 목록 문구로 충분하다.
+  const { data, loading, refetch } = useWatchlist();
+  const items = data ?? [];
 
-  async function load() {
-    setLoading(true);
-    try {
-      setItems(await fetchWatchlist());
-    } catch {
-      /* 조용히 무시 — 관심종목 없거나 백엔드 미가동 */
-    } finally {
-      setLoading(false);
-    }
-  }
+  // 종목을 관심목록에 추가하는 버튼은 page.tsx에 있다. 추가 후 이 목록을
+  // 새로 고치라고 알리는 통로.
+  useImperativeHandle(ref, () => ({ reload: refetch }), [refetch]);
 
-  useImperativeHandle(ref, () => ({ reload: load }));
-  useEffect(() => {
-    void load();
-  }, []);
+  const removeHolding = useAsyncAction(deleteWatchlist);
 
   async function remove(ticker: string, e: React.MouseEvent) {
     e.stopPropagation();
-    try {
-      await deleteWatchlist(ticker);
-      await load();
-    } catch {
-      /* noop */
-    }
+    await removeHolding.run(ticker);
+    refetch();
   }
 
   return (
