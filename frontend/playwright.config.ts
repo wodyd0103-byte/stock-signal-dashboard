@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * 레이아웃 회귀만 확인하는 설정. 백엔드는 띄우지 않고 tests/fixtures 의 응답을
+ * 레이아웃 회귀만 확인하는 설정. 백엔드는 띄우지 않고 demo-data/ 의 응답을
  * 라우트 가로채기로 돌려주므로, 실행에 필요한 건 프론트엔드 프로덕션 서버뿐이다.
  * dev 서버 대신 build + start 를 쓰는 이유는 CI 와 로컬이 같은 산출물을 보게
  * 하기 위해서다.

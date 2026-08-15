@@ -15,7 +15,7 @@ import SignalCard from "@/components/SignalCard";
 import SupplyDemandCard from "@/components/SupplyDemandCard";
 import IndicatorGuideInline from "@/components/IndicatorGuideInline";
 import BacktestSection from "@/components/BacktestSection";
-import { buildStockCsvUrl } from "@/lib/api";
+import { buildStockCsvUrl, IS_DEMO } from "@/lib/api";
 import type { AnalysisResponse, Period } from "@/lib/types";
 
 interface Props {
@@ -182,6 +182,18 @@ function DataSourceBanner({ analysis }: { analysis: AnalysisResponse }) {
       </div>
     );
   }
+  // 데모에서는 "실시간"이라고 쓰면 안 된다. 값은 캡처해둔 시점 그대로다.
+  if (IS_DEMO) {
+    return (
+      <div className="flex items-center gap-2.5 rounded-card bg-surface px-3 py-2 text-xs text-sub">
+        <CheckCircle2 size={15} className="shrink-0" />
+        <p className="font-medium">
+          미리 받아둔 응답 · 원 출처 <span className="font-bold">{analysis.source}</span>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2.5 rounded-card bg-toss-50 px-3 py-2 text-xs text-toss-600">
       <CheckCircle2 size={15} className="shrink-0" />

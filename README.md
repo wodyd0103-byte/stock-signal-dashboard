@@ -149,6 +149,12 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 
 `cd frontend && npm install`이 `.githooks`를 커밋 훅으로 등록하므로, 포맷이 어긋난 커밋은 CI까지 가기 전에 로컬에서 막힙니다. 수동 등록은 `npm run hooks:install`, 우회는 `git commit --no-verify`입니다.
 
+## 배포
+
+프론트엔드는 Vercel에 **데모 모드**로 올립니다. 백엔드(FastAPI)는 외부 시세 조회와 SQLite 쓰기가 필요해 같이 올리지 않고, 대신 `frontend/demo-data/`에 받아둔 실제 응답을 Next 라우트 핸들러가 같은 경로 모양으로 돌려줍니다. 값이 고정이라는 사실은 화면 상단 배너가 알리고, 저장·삭제는 405로 막습니다.
+
+Vercel 프로젝트 설정은 Root Directory `frontend`, 환경변수 `NEXT_PUBLIC_DEMO=1` 두 가지입니다. 백엔드를 어딘가에 띄웠다면 `NEXT_PUBLIC_API_BASE_URL`에 그 주소를 넣으면 그쪽을 봅니다. 자세한 내용은 [frontend/README.md](frontend/README.md#배포-vercel-와-데모-모드).
+
 ## 로드맵
 
 - 실시간 paper trading 대시보드 (`/api/live/*`, 운용 모드별 예산·손절·익절 관리) — 설계 단계, 미구현
