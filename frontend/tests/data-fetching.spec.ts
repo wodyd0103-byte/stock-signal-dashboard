@@ -51,6 +51,21 @@ test("한 번 받아온 목록은 탭을 오가도 다시 요청하지 않는다
   expect(requests.matching(/buy-signals/)[1]).toContain("force_refresh=true");
 });
 
+test("리밸런싱 요청이 실패하면 조용히 넘어가지 않는다", async ({ page }) => {
+  // 픽스처가 없는 엔드포인트라 mockApi가 501로 돌려준다. 예전 PortfolioPanel은
+  // 이 실패를 빈 catch로 삼켜서, 버튼을 눌러도 아무 일도 없는 것처럼 보였다.
+  await mockApi(page);
+  await page.goto("/");
+  await expect(page.getByText("기술적 지표")).toBeVisible();
+  await page.locator("nav").getByRole("button", { name: "포트폴리오", exact: true }).click();
+
+  // 계산 버튼은 리밸런싱과 최적화 두 곳에 있고, DOM 순서상 앞이 리밸런싱이다.
+  await expect(page.getByText("리밸런싱 계산기")).toBeVisible();
+  await page.getByRole("button", { name: "계산", exact: true }).first().click();
+
+  await expect(page.getByText(/픽스처 없음.*rebalance/)).toBeVisible();
+});
+
 test("늦게 온 응답이 그 사이 고른 값을 덮어쓰지 않는다", async ({ page }) => {
   await mockApi(page);
 

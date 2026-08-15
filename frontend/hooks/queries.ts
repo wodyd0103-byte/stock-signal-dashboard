@@ -4,6 +4,7 @@ import {
   fetchAnalysis,
   fetchBuySignals,
   fetchFactorIC,
+  fetchPortfolioAnalysis,
   fetchRetroSummary,
   fetchSurgeScan,
   fetchWatchlist,
@@ -14,6 +15,7 @@ import type {
   BuySignalItem,
   ICReport,
   Period,
+  PortfolioReport,
   RetroSummary,
   SurgeItem,
   WatchlistSummary,
@@ -87,4 +89,10 @@ export function useFactorIC(horizonDays: number, enabled: boolean): AsyncData<IC
 
 export function useRetroSummary(enabled: boolean): AsyncData<RetroSummary> {
   return useAsyncData(() => fetchRetroSummary(), [], { enabled });
+}
+
+export function usePortfolio(): AsyncData<PortfolioReport> {
+  return useAsyncData(() => fetchPortfolioAnalysis(), [], {
+    fallbackMessage: "포트폴리오 분석 실패",
+  });
 }

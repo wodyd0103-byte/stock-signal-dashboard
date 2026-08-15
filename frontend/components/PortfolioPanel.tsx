@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -13,14 +13,10 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import {
-  addHolding,
-  deleteHolding,
-  fetchOptimize,
-  fetchPortfolioAnalysis,
-  fetchRebalance,
-} from "@/lib/api";
-import type { HoldingAnalysis, OptimizeResult, PortfolioReport, RebalancePlan } from "@/lib/types";
+import { usePortfolio } from "@/hooks/queries";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { addHolding, deleteHolding, fetchOptimize, fetchRebalance } from "@/lib/api";
+import type { HoldingAnalysis, OptimizeResult, RebalancePlan } from "@/lib/types";
 
 type Strategy = "equal" | "signal" | "risk_parity";
 const STRAT_LABEL: Record<Strategy, string> = {
@@ -42,9 +38,18 @@ const signalChip: Record<string, string> = {
 };
 
 export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) => void }) {
-  const [report, setReport] = useState<PortfolioReport | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // 보유 종목 진단이 이 패널의 기준 데이터다. 쓰기가 끝날 때마다 refetch로 다시 읽는다.
+  const { data: report, error: loadError, loading, refetch } = usePortfolio();
+
+  // 요청을 보내기도 전에 나는 오류(입력 검증)는 따로 둔다.
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const add = useAsyncAction(addHolding, { fallbackMessage: "추가 실패" });
+  const removeHolding = useAsyncAction(deleteHolding, { fallbackMessage: "삭제 실패" });
+  const rebalance = useAsyncAction(fetchRebalance, { fallbackMessage: "리밸런싱 계산 실패" });
+  const optimize = useAsyncAction(fetchOptimize, { fallbackMessage: "최적화 실패" });
+
+  const error = formError ?? add.error ?? removeHolding.error ?? loadError;
 
   const [ticker, setTicker] = useState("");
   const [qty, setQty] = useState("");
@@ -55,7 +60,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
   const [buffer, setBuffer] = useState("0");
   const [strategy, setStrategy] = useState<Strategy>("signal");
   const [plan, setPlan] = useState<RebalancePlan | null>(null);
-  const [planLoading, setPlanLoading] = useState(false);
+  const planLoading = rebalance.pending;
 
   // 수동 목표비중
   const [manualMode, setManualMode] = useState(false);
@@ -64,7 +69,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
   // 최적화 (Markowitz)
   const [optMethod, setOptMethod] = useState<OptMethod>("max_sharpe");
   const [opt, setOpt] = useState<OptimizeResult | null>(null);
-  const [optLoading, setOptLoading] = useState(false);
+  const optLoading = optimize.pending;
 
   function toggleManual() {
     setManualMode((on) => {
@@ -85,59 +90,26 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
   const manualSum = Object.values(manualW).reduce((s, v) => s + (Number(v) || 0), 0);
 
   async function runRebalance() {
-    setPlanLoading(true);
-    try {
-      const weights = manualMode
-        ? Object.entries(manualW)
-            .filter(([, v]) => Number(v) > 0)
-            .map(([t, v]) => `${t}:${v}`)
-            .join(",")
-        : undefined;
-      setPlan(
-        await fetchRebalance({
-          cash: Number(cash) || 0,
-          strategy,
-          maxWeight: 35,
-          cashBuffer: Number(buffer) || 0,
-          weights,
-        }),
-      );
-    } catch {
-      /* noop */
-    } finally {
-      setPlanLoading(false);
-    }
+    const weights = manualMode
+      ? Object.entries(manualW)
+          .filter(([, v]) => Number(v) > 0)
+          .map(([t, v]) => `${t}:${v}`)
+          .join(",")
+      : undefined;
+    const result = await rebalance.run({
+      cash: Number(cash) || 0,
+      strategy,
+      maxWeight: 35,
+      cashBuffer: Number(buffer) || 0,
+      weights,
+    });
+    if (result) setPlan(result);
   }
 
   async function runOptimize() {
-    setOptLoading(true);
-    try {
-      setOpt(await fetchOptimize({ method: optMethod, maxWeight: 40 }));
-    } catch {
-      /* noop */
-    } finally {
-      setOptLoading(false);
-    }
+    const result = await optimize.run({ method: optMethod, maxWeight: 40 });
+    if (result) setOpt(result);
   }
-
-  async function load() {
-    setLoading(true);
-    setError(null);
-    try {
-      setReport(await fetchPortfolioAnalysis());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "포트폴리오 분석 실패");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // 마운트 시 보유 종목 로드. load()의 동기 setLoading(true) 때문에 규칙에 걸린다.
-  // TanStack Query 도입 시 제거 예정.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
-  }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -145,27 +117,21 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
     const q = Number(qty),
       a = Number(avg);
     if (!t || !(q > 0) || !(a > 0)) {
-      setError("종목·수량·평단을 올바르게 입력하세요.");
+      setFormError("종목·수량·평단을 올바르게 입력하세요.");
       return;
     }
-    try {
-      await addHolding({ ticker: t, quantity: q, avg_price: a });
-      setTicker("");
-      setQty("");
-      setAvg("");
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "추가 실패");
-    }
+    setFormError(null);
+    const added = await add.run({ ticker: t, quantity: q, avg_price: a });
+    if (!added) return; // 실패 메시지는 add.error가 들고 있다
+    setTicker("");
+    setQty("");
+    setAvg("");
+    refetch();
   }
 
   async function remove(t: string) {
-    try {
-      await deleteHolding(t);
-      await load();
-    } catch {
-      /* noop */
-    }
+    await removeHolding.run(t);
+    refetch();
   }
 
   const pnlUp = (report?.total_pnl ?? 0) >= 0;
@@ -180,7 +146,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
             <h2 className="mt-0.5 text-heading text-ink">내 보유 종목 진단</h2>
           </div>
         </div>
-        <button type="button" onClick={() => void load()} className="btn-ghost">
+        <button type="button" onClick={refetch} className="btn-ghost">
           <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
@@ -371,6 +337,10 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
               </button>
             </div>
 
+            {/* 예전에는 이 요청이 실패해도 catch에서 조용히 삼켜 아무 일도 없었던
+                것처럼 보였다. */}
+            {rebalance.error ? <p className="mt-3 text-xs text-down">{rebalance.error}</p> : null}
+
             {manualMode ? (
               <div className="mt-3 rounded-xl bg-surface p-3">
                 <p className="mb-2 text-[11px] font-bold text-muted">
@@ -487,6 +457,8 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
                 계산
               </button>
             </div>
+
+            {optimize.error ? <p className="mt-3 text-xs text-down">{optimize.error}</p> : null}
 
             {opt && !opt.error ? (
               <div className="mt-3 space-y-1.5">
