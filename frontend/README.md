@@ -85,6 +85,8 @@ tests/       Playwright 스펙
 
 ## 배포 (GitHub Pages) 와 데모 모드
 
+<https://wodyd0103-byte.github.io/stock-signal-dashboard/>
+
 배포되는 것은 이 Next.js 앱뿐입니다. FastAPI 백엔드는 pykrx·yfinance로 외부 시세를 받아오고 SQLite에 쓰기 때문에 정적 호스팅에 올릴 수 없습니다. 그렇다고 프론트만 올리면 링크를 연 사람은 카드마다 "백엔드 서버에 연결할 수 없습니다"만 보게 됩니다.
 
 그래서 **데모 모드**가 있습니다. `scripts/build-demo-api.mjs`가 `demo-data/`의 실제 백엔드 응답을 `public/api/demo/` 아래에 **백엔드와 같은 경로 모양의 정적 파일**로 펼쳐 놓고, 앱은 그것을 API로 읽습니다. 서버가 필요 없으므로 GitHub Pages에 그대로 올라갑니다.
