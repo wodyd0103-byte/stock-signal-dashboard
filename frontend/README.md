@@ -120,6 +120,7 @@ CI가 도는 순서 그대로입니다.
 ```bash
 npm run format:check   # Prettier. 고칠 때는 npm run format
 npm run lint           # ESLint (flat config, eslint-config-next)
+npm test               # Vitest 단위 테스트 (jsdom, 약 2초)
 npm run build          # 타입 체크 포함
 npx playwright test    # 백엔드 없이 돈다
 ```
@@ -127,6 +128,10 @@ npx playwright test    # 백엔드 없이 돈다
 `npm install`이 `.githooks`를 커밋 훅으로 등록하므로 포맷이 어긋난 커밋은 로컬에서 막힙니다. 우회는 `git commit --no-verify`입니다.
 
 ## 테스트
+
+두 층으로 나뉩니다. **Vitest**(`hooks/*.test.ts`, `vitest.config.mts`)는 브라우저가 필요 없는 것을 2초 안에 돌리고, **Playwright**(`tests/`)는 진짜 브라우저가 있어야만 의미가 있는 것을 봅니다. 확장자가 겹치면 vitest가 Playwright 스펙을 집어 들고 `test.describe`에서 터지므로, vitest는 `*.test.ts`만 보고 `tests/`는 통째로 제외합니다.
+
+`hooks/useAsyncData.test.ts`와 `useAsyncAction.test.ts`는 응답 시점을 직접 쥐고 캐시 키, 늦게 온 응답, `enabled`, 실패 시 `null` 반환을 확인합니다. 언마운트 뒤 setState는 **일부러 단언하지 않습니다** — React 18에서 그 시점 setState는 조용한 no-op이라 가드를 지워도 밖에서 보이는 차이가 없고, `console.error`가 비었는지 보는 식의 검사는 무조건 통과하기 때문입니다.
 
 `tests/horizontal-overflow.spec.ts`가 375 / 768 / 1024 / 1440px에서 탭 3개를 모두 눌러가며 `document.documentElement.scrollWidth === clientWidth`를 확인합니다. 좁은 화면 가로 스크롤이 세 번 재발한 적이 있어 자동으로 막습니다. jsdom에는 레이아웃 엔진이 없어 이 검사는 진짜 브라우저에서만 의미가 있습니다.
 
@@ -138,7 +143,7 @@ API 응답은 `demo-data/`에 실제 백엔드 응답을 떠둔 것을 `tests/mo
 
 ## 알려진 한계
 
-- 컴포넌트 단위 테스트가 없습니다. Playwright 스펙은 레이아웃 회귀와 페칭 동작 전용입니다.
+- 단위 테스트는 훅 두 개뿐입니다. 컴포넌트 렌더 단위 테스트는 아직 없습니다.
 - 캐시는 컴포넌트 단위입니다. 언마운트되면 사라지고 화면 간에 공유되지 않습니다.
 - 검색에 디바운스가 없고, `DiscoveryRail`은 `limit: 30` 고정이라 페이지네이션이 없습니다.
 - 응답 런타임 검증이 없습니다. 타입은 컴파일 타임 선언일 뿐입니다.
