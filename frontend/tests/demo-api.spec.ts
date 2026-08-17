@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * 백엔드 없이 배포하기 위한 데모 API(`app/api/demo`). 배포본에서 화면이 비면
- * 링크를 연 사람에게는 그게 앱의 전부라서, 경로 모양이 어긋나는 것을 여기서 막는다.
+ * 백엔드 없이 배포하기 위한 데모 API. `scripts/build-demo-api.mjs`가 demo-data/를
+ * `public/api/demo/` 아래 정적 파일로 펼쳐 놓은 결과를 확인한다. 배포본에서 화면이
+ * 비면 링크를 연 사람에게는 그게 앱의 전부라서, 경로가 어긋나는 것을 여기서 막는다.
  *
- * 브라우저를 띄우지 않고 요청만 보낸다. `NEXT_PUBLIC_DEMO` 없이 빌드해도 라우트
- * 핸들러 자체는 존재하므로 일반 실행에서도 그대로 검사된다.
+ * 브라우저를 띄우지 않고 요청만 보낸다. 파일은 빌드 때 항상 생성되므로
+ * `NEXT_PUBLIC_DEMO` 없이 빌드한 일반 실행에서도 그대로 검사된다.
  */
 
 const READS = [
@@ -38,14 +39,10 @@ test("종목 분석과 포트폴리오 분석이 서로 다른 데이터를 준�
   expect(portfolio).toHaveProperty("holdings");
 });
 
-test("데모에서는 쓰기가 405로 막히고 이유를 알려준다", async ({ request }) => {
-  const res = await request.post("/api/demo/watchlist", { data: { ticker: "005930" } });
-  expect(res.status()).toBe(405);
-  expect((await res.json()).detail).toContain("데모");
-});
-
-test("데이터가 없는 경로는 404와 경로명을 돌려준다", async ({ request }) => {
-  const res = await request.get("/api/demo/nope/nothing");
-  expect(res.status()).toBe(404);
-  expect((await res.json()).detail).toContain("/nope/nothing");
+test("데모에 없는 데이터는 200으로 위장하지 않는다", async ({ request }) => {
+  // 정적 파일이라 없는 경로는 그냥 404다. 앱은 이걸 "데모에는 이 데이터가
+  // 없습니다"로 바꿔 보여준다(lib/api.ts).
+  for (const path of ["/api/demo/stocks/000660/analysis", "/api/demo/nope/nothing"]) {
+    expect((await request.get(path)).status(), `${path}가 404가 아니다`).toBe(404);
+  }
 });

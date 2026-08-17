@@ -47,12 +47,13 @@ app/page.tsx  (유일한 라우트, 클라이언트 컴포넌트)
 ## 디렉터리
 
 ```
-app/         라우트, 레이아웃, 전역 CSS, 에러 바운더리, 데모 API
+app/         라우트, 레이아웃, 전역 CSS, 에러 바운더리
 components/  화면 컴포넌트 (전부 이 한 층, 하위 폴더 없음)
 hooks/       데이터 페칭 훅 (useAsyncData / useAsyncAction / queries)
 lib/api.ts   백엔드 호출 전부
 lib/types.ts API 응답 타입
 demo-data/   캡처해둔 실제 백엔드 응답. 테스트와 데모 배포가 같이 쓴다
+scripts/     demo-data를 정적 API로 펼치는 빌드 스크립트
 tests/       Playwright 스펙
 ```
 
@@ -82,27 +83,32 @@ tests/       Playwright 스펙
 - `prefers-reduced-motion`에서 애니메이션을 전부 끕니다.
 - 테마 깜빡임(FOUC)은 `layout.tsx`의 인라인 스크립트가 렌더 전에 저장된 테마를 적용해 막습니다. `ThemeToggle`은 `useSyncExternalStore`로 `html.dark`를 직접 구독하므로 테마 상태의 복사본을 들고 있지 않습니다.
 
-## 배포 (Vercel) 와 데모 모드
+## 배포 (GitHub Pages) 와 데모 모드
 
-Vercel에는 이 Next.js 앱만 올라갑니다. FastAPI 백엔드는 pykrx·yfinance로 외부 시세를 받아오고 SQLite에 쓰기 때문에 함께 올릴 수 없습니다. 그렇다고 프론트만 올리면 링크를 연 사람은 카드마다 "백엔드 서버에 연결할 수 없습니다"만 보게 됩니다.
+배포되는 것은 이 Next.js 앱뿐입니다. FastAPI 백엔드는 pykrx·yfinance로 외부 시세를 받아오고 SQLite에 쓰기 때문에 정적 호스팅에 올릴 수 없습니다. 그렇다고 프론트만 올리면 링크를 연 사람은 카드마다 "백엔드 서버에 연결할 수 없습니다"만 보게 됩니다.
 
-그래서 **데모 모드**가 있습니다. `app/api/demo/[...path]/route.ts`가 `demo-data/`에 받아둔 실제 백엔드 응답을 백엔드와 같은 경로 모양으로 돌려줍니다. 숫자와 해석 문장이 진짜라 화면이 제대로 채워지고, 값이 고정이라는 사실은 상단 배너와 데이터 출처 줄이 계속 알립니다. 쓰기 요청은 405로 막고 이유를 돌려줍니다.
+그래서 **데모 모드**가 있습니다. `scripts/build-demo-api.mjs`가 `demo-data/`의 실제 백엔드 응답을 `public/api/demo/` 아래에 **백엔드와 같은 경로 모양의 정적 파일**로 펼쳐 놓고, 앱은 그것을 API로 읽습니다. 서버가 필요 없으므로 GitHub Pages에 그대로 올라갑니다.
 
-배포 설정은 두 가지뿐입니다.
+숫자와 해석 문장이 진짜라 화면이 제대로 채워집니다. 진짜가 아닌 것은 값이 고정이라는 점이고, 그건 세 군데서 알립니다 — 닫을 수 없는 상단 배너, "실시간 데이터" 대신 "미리 받아둔 응답"으로 바뀌는 출처 줄, 그리고 데모에 없는 종목을 고르면 나오는 안내입니다.
 
-| 항목           | 값                   |
-| -------------- | -------------------- |
-| Root Directory | `frontend`           |
-| 환경변수       | `NEXT_PUBLIC_DEMO=1` |
+`.github/workflows/pages.yml`이 `main`에 머지될 때마다 배포합니다. 빌드에 세 값을 넣습니다.
 
-`NEXT_PUBLIC_API_BASE_URL`을 설정하면 그쪽이 우선하므로, 백엔드를 어딘가에 띄웠다면 그 주소를 넣으면 됩니다.
+| 환경변수                | 값                        | 이유                                          |
+| ----------------------- | ------------------------- | --------------------------------------------- |
+| `PAGES_BASE_PATH`       | `/stock-signal-dashboard` | 정적 export로 전환하고 basePath를 붙인다      |
+| `NEXT_PUBLIC_BASE_PATH` | `/stock-signal-dashboard` | fetch 경로에는 basePath가 자동으로 안 붙는다  |
+| `NEXT_PUBLIC_DEMO`      | `1`                       | 배너를 켜고 API 기본값을 `/api/demo`로 돌린다 |
 
-로컬에서 데모 모드를 확인하려면:
+`PAGES_BASE_PATH`가 없으면 평소대로 서버 렌더 빌드라서 `npm run dev`, `next start`, CI e2e는 그대로 동작합니다. `NEXT_PUBLIC_API_BASE_URL`을 주면 그쪽이 항상 우선하므로, 백엔드를 어딘가에 띄웠다면 그 주소를 넣으면 됩니다.
+
+로컬에서 배포본과 같은 것을 확인하려면:
 
 ```powershell
 cd frontend
-$env:NEXT_PUBLIC_DEMO="1"; npm run build
-npx next start --port 3200
+$env:PAGES_BASE_PATH="/stock-signal-dashboard"; $env:NEXT_PUBLIC_BASE_PATH="/stock-signal-dashboard"; $env:NEXT_PUBLIC_DEMO="1"
+npm run build
+# out/ 을 <아무 폴더>/stock-signal-dashboard 로 복사한 뒤 그 상위 폴더를 정적 서버로 연다
+npx serve <아무 폴더>
 ```
 
 ## 품질 검사

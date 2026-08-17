@@ -20,13 +20,17 @@ import type {
 } from "./types";
 
 /**
- * 데모 배포는 백엔드 없이 돌아간다. 값이 고정이라는 사실은 DemoBanner가 알린다.
- * 자세한 배경은 `app/api/demo/[...path]/route.ts`.
+ * 데모 배포는 백엔드 없이 돌아간다. 응답은 `public/api/demo/` 아래에 정적 파일로
+ * 놓이고(`scripts/build-demo-api.mjs`), 값이 고정이라는 사실은 DemoBanner가 알린다.
  */
 export const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
+/** GitHub Pages 프로젝트 페이지는 하위 경로에 서빙된다. fetch 경로에는 자동으로 안 붙는다. */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? (IS_DEMO ? "/api/demo" : "http://127.0.0.1:8000/api");
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (IS_DEMO ? `${BASE_PATH}/api/demo` : "http://127.0.0.1:8000/api");
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response;
@@ -47,6 +51,17 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body = await response.text();
     let message = "API 요청에 실패했습니다.";
+
+    // 정적 호스팅(데모)에서는 없는 경로에 404 HTML 페이지가 돌아온다. 그대로
+    // 화면에 뿌리면 마크업이 토스트에 박히므로, 그때는 사람이 읽을 문장을 쓴다.
+    if (body.trimStart().startsWith("<")) {
+      throw new Error(
+        IS_DEMO
+          ? "데모에는 이 데이터가 없습니다. 미리 받아둔 응답만 포함돼 있습니다."
+          : `요청한 경로를 찾을 수 없습니다 (${response.status}).`,
+      );
+    }
+
     if (body) {
       try {
         const parsed = JSON.parse(body) as { detail?: unknown };

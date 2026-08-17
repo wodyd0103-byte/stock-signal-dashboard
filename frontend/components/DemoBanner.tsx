@@ -16,8 +16,8 @@ export default function DemoBanner() {
         <Info size={14} className="shrink-0" />
         <span className="font-bold">데모</span>
         <span>
-          백엔드 없이 미리 받아둔 응답을 보여줍니다. 값은 고정이며 저장·삭제와 실시간 조회는
-          동작하지 않습니다.
+          백엔드 없이 미리 받아둔 응답을 보여줍니다. 값은 고정이고, 개별 종목 분석은 삼성전자
+          (005930)만 포함돼 있으며, 저장·삭제는 동작하지 않습니다.
         </span>
       </p>
     </div>
