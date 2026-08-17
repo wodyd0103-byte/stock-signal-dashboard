@@ -21,9 +21,11 @@ frontend/public/api/
 frontend/next-env.d.ts
 
 # Environment
+# `.env`와 `.env.local`만 막으면 `.env.production` 같은 이름이 그대로 커밋된다.
+# 전부 막고 예시 파일만 되돌린다.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Databases
 *.db
