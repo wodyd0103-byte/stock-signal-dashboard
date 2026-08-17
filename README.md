@@ -151,9 +151,9 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 
 ## 배포
 
-프론트엔드는 Vercel에 **데모 모드**로 올립니다. 백엔드(FastAPI)는 외부 시세 조회와 SQLite 쓰기가 필요해 같이 올리지 않고, 대신 `frontend/demo-data/`에 받아둔 실제 응답을 Next 라우트 핸들러가 같은 경로 모양으로 돌려줍니다. 값이 고정이라는 사실은 화면 상단 배너가 알리고, 저장·삭제는 405로 막습니다.
+프론트엔드는 GitHub Pages에 **데모 모드**로 올라갑니다(`.github/workflows/pages.yml`, `main` 머지마다 자동). 백엔드(FastAPI)는 외부 시세 조회와 SQLite 쓰기가 필요해 정적 호스팅에 올릴 수 없으므로, `frontend/demo-data/`에 받아둔 실제 응답을 백엔드와 같은 경로 모양의 정적 파일로 펼쳐 앱이 그것을 읽습니다.
 
-Vercel 프로젝트 설정은 Root Directory `frontend`, 환경변수 `NEXT_PUBLIC_DEMO=1` 두 가지입니다. 백엔드를 어딘가에 띄웠다면 `NEXT_PUBLIC_API_BASE_URL`에 그 주소를 넣으면 그쪽을 봅니다. 자세한 내용은 [frontend/README.md](frontend/README.md#배포-vercel-와-데모-모드).
+값이 고정이라는 사실은 상단 배너와 데이터 출처 줄이 알리고, 데모에 없는 종목을 고르면 그렇다고 표시합니다. 개별 종목 분석은 삼성전자(005930) 응답만 포함돼 있습니다. 자세한 내용은 [frontend/README.md](frontend/README.md#배포-github-pages-와-데모-모드).
 
 ## 로드맵
 
