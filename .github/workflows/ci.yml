@@ -7,7 +7,7 @@ on:
 
 jobs:
   frontend:
-    name: frontend (format / lint / build / e2e)
+    name: frontend (format / lint / unit / build / e2e)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,6 +27,10 @@ jobs:
       - run: npm run format:check
 
       - run: npm run lint
+
+      # 훅 단위 테스트. 브라우저를 띄우지 않으므로 2초면 끝나고, 아래 e2e 보다
+      # 먼저 돌려서 빠르게 실패시킨다.
+      - run: npm test
 
       # 레이아웃 검사는 진짜 브라우저에서만 의미가 있다. jsdom 에는 레이아웃 엔진이 없다.
       - run: npx playwright install --with-deps chromium
