@@ -2,6 +2,8 @@
 
 주식 가격 데이터를 조회해 기술적 지표, 단기 가격 예측, 리스크 분석, 백테스트, 매수/매도/관망 신호를 제공하는 웹 애플리케이션입니다. 실제 주문 실행 기능은 없으며, 모든 신호는 알고리즘 기반 참고 정보입니다.
 
+**[▶ 데모 열기](https://wodyd0103-byte.github.io/stock-signal-dashboard/)** — 백엔드 없이 도는 정적 배포입니다. 화면의 숫자는 실제 백엔드가 돌려준 응답을 그대로 받아둔 것이라 진짜지만, 값은 그 시점에 고정돼 있고 개별 종목 분석은 삼성전자(005930)만 포함돼 있습니다.
+
 ![Quant Insight 대시보드](docs/images/dashboard.png)
 
 <details>
@@ -150,6 +152,8 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 `cd frontend && npm install`이 `.githooks`를 커밋 훅으로 등록하므로, 포맷이 어긋난 커밋은 CI까지 가기 전에 로컬에서 막힙니다. 수동 등록은 `npm run hooks:install`, 우회는 `git commit --no-verify`입니다.
 
 ## 배포
+
+<https://wodyd0103-byte.github.io/stock-signal-dashboard/>
 
 프론트엔드는 GitHub Pages에 **데모 모드**로 올라갑니다(`.github/workflows/pages.yml`, `main` 머지마다 자동). 백엔드(FastAPI)는 외부 시세 조회와 SQLite 쓰기가 필요해 정적 호스팅에 올릴 수 없으므로, `frontend/demo-data/`에 받아둔 실제 응답을 백엔드와 같은 경로 모양의 정적 파일로 펼쳐 앱이 그것을 읽습니다.
 
