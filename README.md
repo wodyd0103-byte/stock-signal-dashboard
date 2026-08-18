@@ -173,7 +173,6 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 ```text
 backend/    FastAPI 앱 (routers, services, models, schemas, migrations, tests)
 frontend/   Next.js 앱 (app, components, lib)
-kospi_predictor/  Streamlit 기반 초기 프로토타입
 docs/       스크린샷 등 문서 자산
 start.ps1   원클릭 실행 스크립트
 ```

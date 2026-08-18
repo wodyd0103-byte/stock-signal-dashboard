@@ -48,9 +48,6 @@ frontend/blob-report/
 # cannot be committed by an absent-minded `git add -A`.
 frontend/tests/tmp-*.spec.ts
 
-# Streamlit local creds (any depth)
-**/.streamlit/credentials.toml
-
 # OS / editor
 .DS_Store
 .vscode/
