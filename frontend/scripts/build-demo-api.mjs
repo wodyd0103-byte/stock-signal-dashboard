@@ -31,6 +31,8 @@ const FILES = [
   [`stocks/${DEMO_TICKER}/backtest`, "backtest.json"],
   ["market/sentiment", "sentiment.json"],
   ["market/buy-signals", "buy-signals.json"],
+  // 검색 자동완성이 거를 종목 목록. 없으면 데모에서 자동완성만 조용히 죽는다.
+  ["market/representative-stocks", "representative-stocks.json"],
   ["watchlist", "watchlist.json"],
   ["portfolio/analysis", "portfolio.json"],
   ["retrospective/summary", "retrospective.json"],

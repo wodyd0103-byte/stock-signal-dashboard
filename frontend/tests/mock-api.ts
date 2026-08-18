@@ -23,6 +23,7 @@ const ROUTES: [RegExp, string][] = [
   [/\/stocks\/[^/]+\/backtest\b/, "backtest.json"],
   [/\/market\/sentiment\b/, "sentiment.json"],
   [/\/market\/buy-signals\b/, "buy-signals.json"],
+  [/\/market\/representative-stocks\b/, "representative-stocks.json"],
   [/\/watchlist\b/, "watchlist.json"],
   [/\/portfolio\/analysis\b/, "portfolio.json"],
   [/\/retrospective\/summary\b/, "retrospective.json"],
