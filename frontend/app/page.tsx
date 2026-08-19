@@ -16,6 +16,7 @@ import StockSearch from "@/components/StockSearch";
 import ThemeToggle from "@/components/ThemeToggle";
 import WatchlistRail, { type WatchlistRailHandle } from "@/components/WatchlistRail";
 import { useAnalysis } from "@/hooks/queries";
+import { useTabList } from "@/hooks/useTabList";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { addWatchlist } from "@/lib/api";
 import type { Period } from "@/lib/types";
@@ -44,6 +45,12 @@ function Dashboard() {
   const [toast, setToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("analysis");
+  const tabs = useTabList({
+    ids: TABS.map((t) => t.id),
+    active: mainTab,
+    onChange: setMainTab,
+    label: "화면 전환",
+  });
   const watchlistRef = useRef<WatchlistRailHandle>(null);
 
   // 종목과 기간이 곧 요청이다. 예전에는 load()가 상태를 바꾸고 직접 fetch까지
@@ -128,7 +135,13 @@ function Dashboard() {
 
           {/* 메인: 3탭 (분석/포트폴리오/리서치) */}
           <section className="min-w-0">
-            <nav className="sticky top-[64px] z-20 -mx-1 mb-4 flex gap-1 rounded-2xl border border-line bg-card/90 p-1 backdrop-blur-md">
+            {/* nav 가 아니라 tablist 다. 여긴 다른 문서로 가는 링크 묶음이 아니라
+                같은 화면의 영역을 갈아끼우는 것이고, 그래서 예전에 쓰던
+                `aria-current="page"` 는 의미가 맞지 않았다(그건 내비 링크용). */}
+            <div
+              {...tabs.tablistProps}
+              className="sticky top-[64px] z-20 -mx-1 mb-4 flex gap-1 rounded-2xl border border-line bg-card/90 p-1 backdrop-blur-md"
+            >
               {TABS.map((t) => {
                 const active = mainTab === t.id;
                 const Icon = t.icon;
@@ -136,22 +149,23 @@ function Dashboard() {
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setMainTab(t.id)}
+                    {...tabs.getTabProps(t.id)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition ${
                       active
                         ? "bg-toss text-white shadow-sm"
                         : "text-muted hover:bg-surface hover:text-ink"
                     }`}
-                    aria-current={active ? "page" : undefined}
                   >
                     <Icon size={16} />
                     {t.label}
                   </button>
                 );
               })}
-            </nav>
+            </div>
 
-            <div className={mainTab === "analysis" ? "space-y-4" : "hidden"}>
+            {/* 패널은 셋 다 마운트해둔다(입력값·스크롤 위치 유지). 감추는 건
+                className 이 아니라 hidden 속성이라 접근성 트리에서도 빠진다. */}
+            <div {...tabs.getPanelProps("analysis")} className="space-y-4">
               <AnalysisView
                 analysis={analysis}
                 loading={loading}
@@ -161,10 +175,10 @@ function Dashboard() {
               />
               <ComparePanel currentTicker={activeTicker} onSelect={(t) => select(t)} />
             </div>
-            <div className={mainTab === "portfolio" ? "" : "hidden"}>
+            <div {...tabs.getPanelProps("portfolio")}>
               <PortfolioPanel onSelect={(t) => select(t)} />
             </div>
-            <div className={mainTab === "research" ? "space-y-4" : "hidden"}>
+            <div {...tabs.getPanelProps("research")} className="space-y-4">
               <RetrospectivePanel />
               <ICPanel />
             </div>

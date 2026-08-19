@@ -33,13 +33,13 @@ test("한 번 받아온 목록은 탭을 오가도 다시 요청하지 않는다
   await expect(page.getByText("기술적 지표")).toBeVisible();
 
   const rail = page.locator("aside");
-  await expect(rail.getByRole("button", { name: /매수 신호/ })).toBeVisible();
+  await expect(rail.getByRole("tab", { name: /매수 신호/ })).toBeVisible();
   expect(requests.matching(/buy-signals/)).toHaveLength(1);
 
   // 급등 탐색으로 갔다가 돌아온다. 돌아올 때 매수 신호를 다시 부르면 안 된다.
-  await rail.getByRole("button", { name: /급등 탐색/ }).click();
+  await rail.getByRole("tab", { name: /급등 탐색/ }).click();
   await expect.poll(() => requests.matching(/surge/).length).toBe(1);
-  await rail.getByRole("button", { name: /매수 신호/ }).click();
+  await rail.getByRole("tab", { name: /매수 신호/ }).click();
   await page.waitForTimeout(300);
 
   expect(requests.matching(/buy-signals/)).toHaveLength(1);
@@ -57,7 +57,7 @@ test("리밸런싱 요청이 실패하면 조용히 넘어가지 않는다", asy
   await mockApi(page);
   await page.goto("/");
   await expect(page.getByText("기술적 지표")).toBeVisible();
-  await page.locator("nav").getByRole("button", { name: "포트폴리오", exact: true }).click();
+  await page.getByRole("tab", { name: "포트폴리오", exact: true }).click();
 
   // 계산 버튼은 리밸런싱과 최적화 두 곳에 있고, DOM 순서상 앞이 리밸런싱이다.
   await expect(page.getByText("리밸런싱 계산기")).toBeVisible();
@@ -85,7 +85,7 @@ test("늦게 온 응답이 그 사이 고른 값을 덮어쓰지 않는다", asy
 
   await page.goto("/");
   await expect(page.getByText("기술적 지표")).toBeVisible();
-  await page.locator("nav").getByRole("button", { name: "리서치", exact: true }).click();
+  await page.getByRole("tab", { name: "리서치", exact: true }).click();
 
   const panel = page.locator("section", { hasText: "팩터 진단 (IC)" }).last();
   await panel.getByRole("button", { name: /어느 신호가 실제로 먹히나/ }).click();

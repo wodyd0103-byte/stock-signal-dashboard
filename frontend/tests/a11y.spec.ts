@@ -52,14 +52,14 @@ test("분석 화면에 시맨틱 위반이 없다", async ({ page }) => {
 
 test("포트폴리오 화면에 시맨틱 위반이 없다", async ({ page }) => {
   await openApp(page);
-  await page.getByRole("button", { name: "포트폴리오" }).click();
+  await page.getByRole("tab", { name: "포트폴리오" }).click();
   await page.getByRole("button", { name: "포트폴리오 새로고침" }).waitFor();
   await scanSemantics(page, "포트폴리오");
 });
 
 test("리서치 화면에 시맨틱 위반이 없다", async ({ page }) => {
   await openApp(page);
-  await page.getByRole("button", { name: "리서치" }).click();
+  await page.getByRole("tab", { name: "리서치" }).click();
   await scanSemantics(page, "리서치");
 });
 
@@ -119,9 +119,117 @@ test("Shift+Tab 도 대화상자 안에 머문다", async ({ page }) => {
   }
 });
 
+test("메인 탭은 tablist 로 노출되고 선택 상태가 읽힌다", async ({ page }) => {
+  await openApp(page);
+  const tablist = page.getByRole("tablist", { name: "화면 전환" });
+  await expect(tablist.getByRole("tab")).toHaveCount(3);
+
+  const analysis = page.getByRole("tab", { name: "분석" });
+  const portfolio = page.getByRole("tab", { name: "포트폴리오" });
+  await expect(analysis).toHaveAttribute("aria-selected", "true");
+  await expect(portfolio).toHaveAttribute("aria-selected", "false");
+
+  await portfolio.click();
+  await expect(portfolio).toHaveAttribute("aria-selected", "true");
+  await expect(analysis).toHaveAttribute("aria-selected", "false");
+});
+
+test("탭 묶음은 Tab 키 한 번에 통과한다", async ({ page }) => {
+  await openApp(page);
+  // roving tabindex. 선택된 것만 0, 나머지는 -1 이라 Tab 이 탭마다 멈추지 않는다.
+  await expect(page.getByRole("tab", { name: "분석" })).toHaveAttribute("tabindex", "0");
+  await expect(page.getByRole("tab", { name: "포트폴리오" })).toHaveAttribute("tabindex", "-1");
+  await expect(page.getByRole("tab", { name: "리서치" })).toHaveAttribute("tabindex", "-1");
+});
+
+test("화살표로 탭을 옮기면 포커스도 따라간다", async ({ page }) => {
+  await openApp(page);
+  const analysis = page.getByRole("tab", { name: "분석" });
+  const portfolio = page.getByRole("tab", { name: "포트폴리오" });
+  await analysis.focus();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(portfolio).toHaveAttribute("aria-selected", "true");
+  // 선택만 옮기고 포커스를 두고 오면 다음 화살표가 엉뚱한 자리에서 출발한다.
+  await expect(portfolio).toBeFocused();
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(analysis).toBeFocused();
+});
+
+test("화살표는 양 끝에서 감기고 Home/End 로 건너뛴다", async ({ page }) => {
+  await openApp(page);
+  await page.getByRole("tab", { name: "분석" }).focus();
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("tab", { name: "리서치" })).toBeFocused();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "분석" })).toBeFocused();
+
+  await page.keyboard.press("End");
+  await expect(page.getByRole("tab", { name: "리서치" })).toBeFocused();
+
+  await page.keyboard.press("Home");
+  await expect(page.getByRole("tab", { name: "분석" })).toBeFocused();
+});
+
+test("메인 탭은 고른 패널만 접근성 트리에 남긴다", async ({ page }) => {
+  await openApp(page);
+
+  // 탭 묶음이 둘이라 화면에 보이는 tabpanel 도 둘이다(메인 + 발굴 레일).
+  // 그래서 전체 개수가 아니라 각 탭이 가리키는 패널을 직접 확인한다.
+  const panelOf = async (tabName: string) => {
+    const id = await page.getByRole("tab", { name: tabName }).getAttribute("aria-controls");
+    return page.locator(`[id="${id}"]`);
+  };
+
+  await expect(await panelOf("분석")).toBeVisible();
+  await expect(await panelOf("포트폴리오")).toBeHidden();
+  await expect(await panelOf("리서치")).toBeHidden();
+
+  // 패널은 자기를 여는 탭을 가리켜야 한다. 짝이 어긋나면 읽는 쪽에서
+  // "포트폴리오" 탭을 눌렀는데 "분석" 이라고 읽힌다.
+  const analysisTabId = await page.getByRole("tab", { name: "분석" }).getAttribute("id");
+  await expect(await panelOf("분석")).toHaveAttribute("aria-labelledby", analysisTabId!);
+
+  await page.getByRole("tab", { name: "리서치" }).click();
+  await expect(await panelOf("분석")).toBeHidden();
+  await expect(await panelOf("리서치")).toBeVisible();
+
+  // 첫 탭만 확인하면 "모든 패널이 첫 탭을 가리킨다" 는 실수를 놓친다.
+  const researchTabId = await page.getByRole("tab", { name: "리서치" }).getAttribute("id");
+  await expect(await panelOf("리서치")).toHaveAttribute("aria-labelledby", researchTabId!);
+  expect(researchTabId).not.toBe(analysisTabId);
+});
+
+test("발굴 레일도 같은 탭 패턴을 쓴다", async ({ page }) => {
+  await openApp(page);
+  const rail = page.getByRole("tablist", { name: "종목 발굴 방식" });
+  await expect(rail.getByRole("tab")).toHaveCount(2);
+
+  const buy = rail.getByRole("tab", { name: /매수 신호/ });
+  const surge = rail.getByRole("tab", { name: /급등 탐색/ });
+  await expect(buy).toHaveAttribute("aria-selected", "true");
+
+  await buy.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(surge).toHaveAttribute("aria-selected", "true");
+  await expect(surge).toBeFocused();
+});
+
+test("새로고침 버튼은 탭 묶음 밖에 있다", async ({ page }) => {
+  await openApp(page);
+  // tablist 안에 탭이 아닌 것이 섞이면 화살표 이동이 그 위에서 멈추고
+  // 스크린리더가 "2개 중 3번째" 같은 소리를 한다.
+  const rail = page.getByRole("tablist", { name: "종목 발굴 방식" });
+  await expect(rail.getByRole("button", { name: "목록 새로고침" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "목록 새로고침" })).toBeVisible();
+});
+
 test("보유 종목 삭제 버튼은 어느 종목인지까지 읽힌다", async ({ page }) => {
   await openApp(page);
-  await page.getByRole("button", { name: "포트폴리오" }).click();
+  await page.getByRole("tab", { name: "포트폴리오" }).click();
   // 이름 없는 "버튼"이 여러 개면 스크린리더 사용자는 무엇을 지우는지 알 수 없다.
   await expect(page.getByRole("button", { name: /삭제$/ }).first()).toBeVisible();
 });
