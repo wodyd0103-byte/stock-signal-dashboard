@@ -59,11 +59,10 @@ for (const viewport of VIEWPORTS) {
     await expect(page.getByText("기술적 지표")).toBeVisible();
 
     for (const tab of TABS) {
-      // 상단 검색 버튼에도 "분석"이 있어서 탭 목록 안에서만 찾는다.
-      await page.locator("nav").getByRole("button", { name: tab, exact: true }).click();
-      await expect(
-        page.locator("nav").getByRole("button", { name: tab, exact: true }),
-      ).toBeVisible();
+      // 상단 검색 버튼에도 "분석"이 있는데, 그건 role=button 이고 이건 role=tab 이라
+      // 역할만으로 갈린다(예전에는 nav 안으로 한정해야 했다).
+      await page.getByRole("tab", { name: tab, exact: true }).click();
+      await expect(page.getByRole("tab", { name: tab, exact: true })).toBeVisible();
 
       const result = await measureOverflow(page);
 

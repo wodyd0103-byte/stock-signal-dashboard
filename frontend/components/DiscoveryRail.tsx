@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Flame, RefreshCcw, TrendingUp } from "lucide-react";
 import { useBuySignals, useSurgeScan } from "@/hooks/queries";
+import { useTabList } from "@/hooks/useTabList";
 import type { Signal } from "@/lib/types";
 
 type Tab = "buy" | "surge";
@@ -25,6 +26,12 @@ export default function DiscoveryRail({
   selected?: string;
 }) {
   const [tab, setTab] = useState<Tab>("buy");
+  const tabs = useTabList<Tab>({
+    ids: ["buy", "surge"],
+    active: tab,
+    onChange: setTab,
+    label: "종목 발굴 방식",
+  });
 
   // 각 탭은 열려 있을 때만 요청한다. 훅이 응답을 들고 있으므로 탭을 오갈 때
   // 다시 부르지 않는다 — 예전에 목록을 컴포넌트 state에 쌓아두던 것과 같은
@@ -42,16 +49,24 @@ export default function DiscoveryRail({
     <div className="card flex h-full flex-col p-3">
       {/* 탭 */}
       <div className="mb-2 flex items-center gap-1 rounded-xl bg-surface p-1">
-        <TabBtn
-          active={tab === "buy"}
-          onClick={() => setTab("buy")}
-          icon={<TrendingUp size={14} />}
-        >
-          매수 신호
-        </TabBtn>
-        <TabBtn active={tab === "surge"} onClick={() => setTab("surge")} icon={<Flame size={14} />}>
-          급등 탐색
-        </TabBtn>
+        {/* 새로고침 버튼은 tablist 밖에 둔다. 안에 넣으면 화살표 이동이
+            탭이 아닌 것 위에서 멈추고, 스크린리더가 탭 개수를 잘못 읽는다. */}
+        <div {...tabs.tablistProps} className="flex items-center gap-1">
+          <TabBtn
+            active={tab === "buy"}
+            tabProps={tabs.getTabProps("buy")}
+            icon={<TrendingUp size={14} />}
+          >
+            매수 신호
+          </TabBtn>
+          <TabBtn
+            active={tab === "surge"}
+            tabProps={tabs.getTabProps("surge")}
+            icon={<Flame size={14} />}
+          >
+            급등 탐색
+          </TabBtn>
+        </div>
         <button
           type="button"
           onClick={active.refetch}
@@ -70,7 +85,9 @@ export default function DiscoveryRail({
         </p>
       ) : null}
 
-      <div className="flex-1 space-y-1 overflow-y-auto">
+      {/* 패널은 하나뿐이고 내용만 갈아끼운다. `aria-labelledby` 가 현재 탭을
+          가리키므로 읽는 쪽에서는 어느 탭의 내용인지 알 수 있다. */}
+      <div {...tabs.getPanelProps(tab)} className="flex-1 space-y-1 overflow-y-auto">
         {loading && (tab === "buy" ? buy : surge).length === 0 ? (
           <SkeletonRows />
         ) : tab === "buy" ? (
@@ -125,19 +142,19 @@ export default function DiscoveryRail({
 
 function TabBtn({
   active,
-  onClick,
+  tabProps,
   icon,
   children,
 }: {
   active: boolean;
-  onClick: () => void;
+  tabProps: React.ComponentPropsWithoutRef<"button">;
   icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      {...tabProps}
       className={`flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs font-bold transition-colors ${active ? "bg-bg text-ink shadow-card" : "text-muted hover:text-sub"}`}
     >
       {icon}
