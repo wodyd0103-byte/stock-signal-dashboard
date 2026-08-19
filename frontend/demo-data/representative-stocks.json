@@ -1,0 +1,1020 @@
+{
+  "market": "all",
+  "kr_count": 100,
+  "us_count": 102,
+  "total_count": 202,
+  "source": "fallback",
+  "items": [
+    {
+      "name": "삼성전자",
+      "ticker": "005930",
+      "market": "KR"
+    },
+    {
+      "name": "SK하이닉스",
+      "ticker": "000660",
+      "market": "KR"
+    },
+    {
+      "name": "LG에너지솔루션",
+      "ticker": "373220",
+      "market": "KR"
+    },
+    {
+      "name": "삼성바이오로직스",
+      "ticker": "207940",
+      "market": "KR"
+    },
+    {
+      "name": "현대차",
+      "ticker": "005380",
+      "market": "KR"
+    },
+    {
+      "name": "기아",
+      "ticker": "000270",
+      "market": "KR"
+    },
+    {
+      "name": "셀트리온",
+      "ticker": "068270",
+      "market": "KR"
+    },
+    {
+      "name": "POSCO홀딩스",
+      "ticker": "005490",
+      "market": "KR"
+    },
+    {
+      "name": "NAVER",
+      "ticker": "035420",
+      "market": "KR"
+    },
+    {
+      "name": "카카오",
+      "ticker": "035720",
+      "market": "KR"
+    },
+    {
+      "name": "KB금융",
+      "ticker": "105560",
+      "market": "KR"
+    },
+    {
+      "name": "신한지주",
+      "ticker": "055550",
+      "market": "KR"
+    },
+    {
+      "name": "삼성SDI",
+      "ticker": "006400",
+      "market": "KR"
+    },
+    {
+      "name": "LG화학",
+      "ticker": "051910",
+      "market": "KR"
+    },
+    {
+      "name": "현대모비스",
+      "ticker": "012330",
+      "market": "KR"
+    },
+    {
+      "name": "삼성물산",
+      "ticker": "028260",
+      "market": "KR"
+    },
+    {
+      "name": "하나금융지주",
+      "ticker": "086790",
+      "market": "KR"
+    },
+    {
+      "name": "메리츠금융지주",
+      "ticker": "138040",
+      "market": "KR"
+    },
+    {
+      "name": "HD현대중공업",
+      "ticker": "329180",
+      "market": "KR"
+    },
+    {
+      "name": "한화에어로스페이스",
+      "ticker": "012450",
+      "market": "KR"
+    },
+    {
+      "name": "두산에너빌리티",
+      "ticker": "034020",
+      "market": "KR"
+    },
+    {
+      "name": "삼성생명",
+      "ticker": "032830",
+      "market": "KR"
+    },
+    {
+      "name": "삼성화재",
+      "ticker": "000810",
+      "market": "KR"
+    },
+    {
+      "name": "카카오뱅크",
+      "ticker": "323410",
+      "market": "KR"
+    },
+    {
+      "name": "크래프톤",
+      "ticker": "259960",
+      "market": "KR"
+    },
+    {
+      "name": "LG전자",
+      "ticker": "066570",
+      "market": "KR"
+    },
+    {
+      "name": "KT&G",
+      "ticker": "033780",
+      "market": "KR"
+    },
+    {
+      "name": "HMM",
+      "ticker": "011200",
+      "market": "KR"
+    },
+    {
+      "name": "한국전력",
+      "ticker": "015760",
+      "market": "KR"
+    },
+    {
+      "name": "SK스퀘어",
+      "ticker": "402340",
+      "market": "KR"
+    },
+    {
+      "name": "고려아연",
+      "ticker": "010130",
+      "market": "KR"
+    },
+    {
+      "name": "SK텔레콤",
+      "ticker": "017670",
+      "market": "KR"
+    },
+    {
+      "name": "우리금융지주",
+      "ticker": "316140",
+      "market": "KR"
+    },
+    {
+      "name": "기업은행",
+      "ticker": "024110",
+      "market": "KR"
+    },
+    {
+      "name": "포스코퓨처엠",
+      "ticker": "003670",
+      "market": "KR"
+    },
+    {
+      "name": "LG",
+      "ticker": "003550",
+      "market": "KR"
+    },
+    {
+      "name": "삼성전기",
+      "ticker": "009150",
+      "market": "KR"
+    },
+    {
+      "name": "SK이노베이션",
+      "ticker": "096770",
+      "market": "KR"
+    },
+    {
+      "name": "HD한국조선해양",
+      "ticker": "009540",
+      "market": "KR"
+    },
+    {
+      "name": "아모레퍼시픽",
+      "ticker": "090430",
+      "market": "KR"
+    },
+    {
+      "name": "현대글로비스",
+      "ticker": "086280",
+      "market": "KR"
+    },
+    {
+      "name": "유한양행",
+      "ticker": "000100",
+      "market": "KR"
+    },
+    {
+      "name": "삼성에스디에스",
+      "ticker": "018260",
+      "market": "KR"
+    },
+    {
+      "name": "한미반도체",
+      "ticker": "042700",
+      "market": "KR"
+    },
+    {
+      "name": "하이브",
+      "ticker": "352820",
+      "market": "KR"
+    },
+    {
+      "name": "대한항공",
+      "ticker": "003490",
+      "market": "KR"
+    },
+    {
+      "name": "S-Oil",
+      "ticker": "010950",
+      "market": "KR"
+    },
+    {
+      "name": "롯데케미칼",
+      "ticker": "011170",
+      "market": "KR"
+    },
+    {
+      "name": "SK",
+      "ticker": "034730",
+      "market": "KR"
+    },
+    {
+      "name": "두산",
+      "ticker": "000150",
+      "market": "KR"
+    },
+    {
+      "name": "한국항공우주",
+      "ticker": "047810",
+      "market": "KR"
+    },
+    {
+      "name": "현대제철",
+      "ticker": "004020",
+      "market": "KR"
+    },
+    {
+      "name": "LG생활건강",
+      "ticker": "051900",
+      "market": "KR"
+    },
+    {
+      "name": "엔씨소프트",
+      "ticker": "036570",
+      "market": "KR"
+    },
+    {
+      "name": "넷마블",
+      "ticker": "251270",
+      "market": "KR"
+    },
+    {
+      "name": "현대건설",
+      "ticker": "000720",
+      "market": "KR"
+    },
+    {
+      "name": "한온시스템",
+      "ticker": "018880",
+      "market": "KR"
+    },
+    {
+      "name": "CJ제일제당",
+      "ticker": "097950",
+      "market": "KR"
+    },
+    {
+      "name": "오리온",
+      "ticker": "271560",
+      "market": "KR"
+    },
+    {
+      "name": "농심",
+      "ticker": "004370",
+      "market": "KR"
+    },
+    {
+      "name": "KT",
+      "ticker": "030200",
+      "market": "KR"
+    },
+    {
+      "name": "LG유플러스",
+      "ticker": "032640",
+      "market": "KR"
+    },
+    {
+      "name": "한국타이어앤테크놀로지",
+      "ticker": "161390",
+      "market": "KR"
+    },
+    {
+      "name": "금호석유",
+      "ticker": "011780",
+      "market": "KR"
+    },
+    {
+      "name": "팬오션",
+      "ticker": "028670",
+      "market": "KR"
+    },
+    {
+      "name": "미래에셋증권",
+      "ticker": "006800",
+      "market": "KR"
+    },
+    {
+      "name": "삼성증권",
+      "ticker": "016360",
+      "market": "KR"
+    },
+    {
+      "name": "키움증권",
+      "ticker": "039490",
+      "market": "KR"
+    },
+    {
+      "name": "GS",
+      "ticker": "078930",
+      "market": "KR"
+    },
+    {
+      "name": "GS건설",
+      "ticker": "006360",
+      "market": "KR"
+    },
+    {
+      "name": "한화솔루션",
+      "ticker": "009830",
+      "market": "KR"
+    },
+    {
+      "name": "한화오션",
+      "ticker": "042660",
+      "market": "KR"
+    },
+    {
+      "name": "현대오토에버",
+      "ticker": "307950",
+      "market": "KR"
+    },
+    {
+      "name": "카카오페이",
+      "ticker": "377300",
+      "market": "KR"
+    },
+    {
+      "name": "한화시스템",
+      "ticker": "272210",
+      "market": "KR"
+    },
+    {
+      "name": "LS ELECTRIC",
+      "ticker": "010120",
+      "market": "KR"
+    },
+    {
+      "name": "LS",
+      "ticker": "006260",
+      "market": "KR"
+    },
+    {
+      "name": "SK바이오팜",
+      "ticker": "326030",
+      "market": "KR"
+    },
+    {
+      "name": "SK바이오사이언스",
+      "ticker": "302440",
+      "market": "KR"
+    },
+    {
+      "name": "롯데지주",
+      "ticker": "004990",
+      "market": "KR"
+    },
+    {
+      "name": "이마트",
+      "ticker": "139480",
+      "market": "KR"
+    },
+    {
+      "name": "호텔신라",
+      "ticker": "008770",
+      "market": "KR"
+    },
+    {
+      "name": "현대백화점",
+      "ticker": "069960",
+      "market": "KR"
+    },
+    {
+      "name": "신세계",
+      "ticker": "004170",
+      "market": "KR"
+    },
+    {
+      "name": "BGF리테일",
+      "ticker": "282330",
+      "market": "KR"
+    },
+    {
+      "name": "코웨이",
+      "ticker": "021240",
+      "market": "KR"
+    },
+    {
+      "name": "한샘",
+      "ticker": "009240",
+      "market": "KR"
+    },
+    {
+      "name": "더존비즈온",
+      "ticker": "012510",
+      "market": "KR"
+    },
+    {
+      "name": "LIG넥스원",
+      "ticker": "079550",
+      "market": "KR"
+    },
+    {
+      "name": "DB손해보험",
+      "ticker": "005830",
+      "market": "KR"
+    },
+    {
+      "name": "현대해상",
+      "ticker": "001450",
+      "market": "KR"
+    },
+    {
+      "name": "NH투자증권",
+      "ticker": "005940",
+      "market": "KR"
+    },
+    {
+      "name": "BNK금융지주",
+      "ticker": "138930",
+      "market": "KR"
+    },
+    {
+      "name": "DGB금융지주",
+      "ticker": "139130",
+      "market": "KR"
+    },
+    {
+      "name": "제주항공",
+      "ticker": "089590",
+      "market": "KR"
+    },
+    {
+      "name": "강원랜드",
+      "ticker": "035250",
+      "market": "KR"
+    },
+    {
+      "name": "에스원",
+      "ticker": "012750",
+      "market": "KR"
+    },
+    {
+      "name": "두산밥캣",
+      "ticker": "241560",
+      "market": "KR"
+    },
+    {
+      "name": "현대위아",
+      "ticker": "011210",
+      "market": "KR"
+    },
+    {
+      "name": "F&F",
+      "ticker": "383220",
+      "market": "KR"
+    },
+    {
+      "name": "Apple",
+      "ticker": "AAPL",
+      "market": "US"
+    },
+    {
+      "name": "Microsoft",
+      "ticker": "MSFT",
+      "market": "US"
+    },
+    {
+      "name": "NVIDIA",
+      "ticker": "NVDA",
+      "market": "US"
+    },
+    {
+      "name": "Amazon",
+      "ticker": "AMZN",
+      "market": "US"
+    },
+    {
+      "name": "Meta",
+      "ticker": "META",
+      "market": "US"
+    },
+    {
+      "name": "Alphabet Class A",
+      "ticker": "GOOGL",
+      "market": "US"
+    },
+    {
+      "name": "Alphabet Class C",
+      "ticker": "GOOG",
+      "market": "US"
+    },
+    {
+      "name": "Tesla",
+      "ticker": "TSLA",
+      "market": "US"
+    },
+    {
+      "name": "Broadcom",
+      "ticker": "AVGO",
+      "market": "US"
+    },
+    {
+      "name": "Costco",
+      "ticker": "COST",
+      "market": "US"
+    },
+    {
+      "name": "Netflix",
+      "ticker": "NFLX",
+      "market": "US"
+    },
+    {
+      "name": "AMD",
+      "ticker": "AMD",
+      "market": "US"
+    },
+    {
+      "name": "Adobe",
+      "ticker": "ADBE",
+      "market": "US"
+    },
+    {
+      "name": "Cisco",
+      "ticker": "CSCO",
+      "market": "US"
+    },
+    {
+      "name": "PepsiCo",
+      "ticker": "PEP",
+      "market": "US"
+    },
+    {
+      "name": "T-Mobile US",
+      "ticker": "TMUS",
+      "market": "US"
+    },
+    {
+      "name": "Linde",
+      "ticker": "LIN",
+      "market": "US"
+    },
+    {
+      "name": "Intuitive Surgical",
+      "ticker": "ISRG",
+      "market": "US"
+    },
+    {
+      "name": "Intuit",
+      "ticker": "INTU",
+      "market": "US"
+    },
+    {
+      "name": "Qualcomm",
+      "ticker": "QCOM",
+      "market": "US"
+    },
+    {
+      "name": "Texas Instruments",
+      "ticker": "TXN",
+      "market": "US"
+    },
+    {
+      "name": "Amgen",
+      "ticker": "AMGN",
+      "market": "US"
+    },
+    {
+      "name": "Honeywell",
+      "ticker": "HON",
+      "market": "US"
+    },
+    {
+      "name": "Applied Materials",
+      "ticker": "AMAT",
+      "market": "US"
+    },
+    {
+      "name": "Booking Holdings",
+      "ticker": "BKNG",
+      "market": "US"
+    },
+    {
+      "name": "Starbucks",
+      "ticker": "SBUX",
+      "market": "US"
+    },
+    {
+      "name": "Automatic Data Processing",
+      "ticker": "ADP",
+      "market": "US"
+    },
+    {
+      "name": "Gilead Sciences",
+      "ticker": "GILD",
+      "market": "US"
+    },
+    {
+      "name": "Mondelez",
+      "ticker": "MDLZ",
+      "market": "US"
+    },
+    {
+      "name": "Palo Alto Networks",
+      "ticker": "PANW",
+      "market": "US"
+    },
+    {
+      "name": "Micron",
+      "ticker": "MU",
+      "market": "US"
+    },
+    {
+      "name": "Lam Research",
+      "ticker": "LRCX",
+      "market": "US"
+    },
+    {
+      "name": "KLA",
+      "ticker": "KLAC",
+      "market": "US"
+    },
+    {
+      "name": "Regeneron",
+      "ticker": "REGN",
+      "market": "US"
+    },
+    {
+      "name": "Synopsys",
+      "ticker": "SNPS",
+      "market": "US"
+    },
+    {
+      "name": "Cadence Design Systems",
+      "ticker": "CDNS",
+      "market": "US"
+    },
+    {
+      "name": "MercadoLibre",
+      "ticker": "MELI",
+      "market": "US"
+    },
+    {
+      "name": "CrowdStrike",
+      "ticker": "CRWD",
+      "market": "US"
+    },
+    {
+      "name": "Marriott",
+      "ticker": "MAR",
+      "market": "US"
+    },
+    {
+      "name": "O'Reilly Automotive",
+      "ticker": "ORLY",
+      "market": "US"
+    },
+    {
+      "name": "Cintas",
+      "ticker": "CTAS",
+      "market": "US"
+    },
+    {
+      "name": "Airbnb",
+      "ticker": "ABNB",
+      "market": "US"
+    },
+    {
+      "name": "PayPal",
+      "ticker": "PYPL",
+      "market": "US"
+    },
+    {
+      "name": "NXP Semiconductors",
+      "ticker": "NXPI",
+      "market": "US"
+    },
+    {
+      "name": "CSX",
+      "ticker": "CSX",
+      "market": "US"
+    },
+    {
+      "name": "PACCAR",
+      "ticker": "PCAR",
+      "market": "US"
+    },
+    {
+      "name": "Monster Beverage",
+      "ticker": "MNST",
+      "market": "US"
+    },
+    {
+      "name": "Ross Stores",
+      "ticker": "ROST",
+      "market": "US"
+    },
+    {
+      "name": "Fortinet",
+      "ticker": "FTNT",
+      "market": "US"
+    },
+    {
+      "name": "Autodesk",
+      "ticker": "ADSK",
+      "market": "US"
+    },
+    {
+      "name": "Copart",
+      "ticker": "CPRT",
+      "market": "US"
+    },
+    {
+      "name": "DexCom",
+      "ticker": "DXCM",
+      "market": "US"
+    },
+    {
+      "name": "Microchip Technology",
+      "ticker": "MCHP",
+      "market": "US"
+    },
+    {
+      "name": "Keurig Dr Pepper",
+      "ticker": "KDP",
+      "market": "US"
+    },
+    {
+      "name": "Exelon",
+      "ticker": "EXC",
+      "market": "US"
+    },
+    {
+      "name": "American Electric Power",
+      "ticker": "AEP",
+      "market": "US"
+    },
+    {
+      "name": "Old Dominion Freight Line",
+      "ticker": "ODFL",
+      "market": "US"
+    },
+    {
+      "name": "Paychex",
+      "ticker": "PAYX",
+      "market": "US"
+    },
+    {
+      "name": "Constellation Energy",
+      "ticker": "CEG",
+      "market": "US"
+    },
+    {
+      "name": "GE HealthCare",
+      "ticker": "GEHC",
+      "market": "US"
+    },
+    {
+      "name": "Kraft Heinz",
+      "ticker": "KHC",
+      "market": "US"
+    },
+    {
+      "name": "Fastenal",
+      "ticker": "FAST",
+      "market": "US"
+    },
+    {
+      "name": "Vertex Pharmaceuticals",
+      "ticker": "VRTX",
+      "market": "US"
+    },
+    {
+      "name": "Biogen",
+      "ticker": "BIIB",
+      "market": "US"
+    },
+    {
+      "name": "Electronic Arts",
+      "ticker": "EA",
+      "market": "US"
+    },
+    {
+      "name": "Xcel Energy",
+      "ticker": "XEL",
+      "market": "US"
+    },
+    {
+      "name": "Baker Hughes",
+      "ticker": "BKR",
+      "market": "US"
+    },
+    {
+      "name": "Verisk Analytics",
+      "ticker": "VRSK",
+      "market": "US"
+    },
+    {
+      "name": "ANSYS",
+      "ticker": "ANSS",
+      "market": "US"
+    },
+    {
+      "name": "Datadog",
+      "ticker": "DDOG",
+      "market": "US"
+    },
+    {
+      "name": "Atlassian",
+      "ticker": "TEAM",
+      "market": "US"
+    },
+    {
+      "name": "Zscaler",
+      "ticker": "ZS",
+      "market": "US"
+    },
+    {
+      "name": "Coinbase",
+      "ticker": "COIN",
+      "market": "US"
+    },
+    {
+      "name": "Marvell Technology",
+      "ticker": "MRVL",
+      "market": "US"
+    },
+    {
+      "name": "Warner Bros. Discovery",
+      "ticker": "WBD",
+      "market": "US"
+    },
+    {
+      "name": "Illumina",
+      "ticker": "ILMN",
+      "market": "US"
+    },
+    {
+      "name": "Moderna",
+      "ticker": "MRNA",
+      "market": "US"
+    },
+    {
+      "name": "Diamondback Energy",
+      "ticker": "FANG",
+      "market": "US"
+    },
+    {
+      "name": "ON Semiconductor",
+      "ticker": "ON",
+      "market": "US"
+    },
+    {
+      "name": "Super Micro Computer",
+      "ticker": "SMCI",
+      "market": "US"
+    },
+    {
+      "name": "Palantir",
+      "ticker": "PLTR",
+      "market": "US"
+    },
+    {
+      "name": "Arm Holdings",
+      "ticker": "ARM",
+      "market": "US"
+    },
+    {
+      "name": "JPMorgan Chase",
+      "ticker": "JPM",
+      "market": "US"
+    },
+    {
+      "name": "Visa",
+      "ticker": "V",
+      "market": "US"
+    },
+    {
+      "name": "Mastercard",
+      "ticker": "MA",
+      "market": "US"
+    },
+    {
+      "name": "UnitedHealth",
+      "ticker": "UNH",
+      "market": "US"
+    },
+    {
+      "name": "Exxon Mobil",
+      "ticker": "XOM",
+      "market": "US"
+    },
+    {
+      "name": "Johnson & Johnson",
+      "ticker": "JNJ",
+      "market": "US"
+    },
+    {
+      "name": "Walmart",
+      "ticker": "WMT",
+      "market": "US"
+    },
+    {
+      "name": "Procter & Gamble",
+      "ticker": "PG",
+      "market": "US"
+    },
+    {
+      "name": "Home Depot",
+      "ticker": "HD",
+      "market": "US"
+    },
+    {
+      "name": "Chevron",
+      "ticker": "CVX",
+      "market": "US"
+    },
+    {
+      "name": "Merck",
+      "ticker": "MRK",
+      "market": "US"
+    },
+    {
+      "name": "AbbVie",
+      "ticker": "ABBV",
+      "market": "US"
+    },
+    {
+      "name": "Bank of America",
+      "ticker": "BAC",
+      "market": "US"
+    },
+    {
+      "name": "Coca-Cola",
+      "ticker": "KO",
+      "market": "US"
+    },
+    {
+      "name": "Oracle",
+      "ticker": "ORCL",
+      "market": "US"
+    },
+    {
+      "name": "Salesforce",
+      "ticker": "CRM",
+      "market": "US"
+    },
+    {
+      "name": "McDonald's",
+      "ticker": "MCD",
+      "market": "US"
+    },
+    {
+      "name": "Disney",
+      "ticker": "DIS",
+      "market": "US"
+    },
+    {
+      "name": "IBM",
+      "ticker": "IBM",
+      "market": "US"
+    },
+    {
+      "name": "Caterpillar",
+      "ticker": "CAT",
+      "market": "US"
+    }
+  ],
+  "updated_at": "2026-08-18T00:00:00+09:00"
+}

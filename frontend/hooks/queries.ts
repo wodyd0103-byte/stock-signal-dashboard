@@ -5,6 +5,7 @@ import {
   fetchBuySignals,
   fetchFactorIC,
   fetchPortfolioAnalysis,
+  fetchRepresentativeStocks,
   fetchRetroSummary,
   fetchSurgeScan,
   fetchWatchlist,
@@ -16,6 +17,7 @@ import type {
   ICReport,
   Period,
   PortfolioReport,
+  RepresentativeStock,
   RetroSummary,
   SurgeItem,
   WatchlistSummary,
@@ -89,6 +91,27 @@ export function useFactorIC(horizonDays: number, enabled: boolean): AsyncData<IC
 
 export function useRetroSummary(enabled: boolean): AsyncData<RetroSummary> {
   return useAsyncData(() => fetchRetroSummary(), [], { enabled });
+}
+
+/**
+ * 검색 자동완성이 거를 종목 목록.
+ *
+ * `source: "fallback"` 은 백엔드가 들고 있는 고정 목록(KR 100 + US 102)을 그대로
+ * 준다. `auto` 는 KRX/미국 지수를 실제로 긁어오느라 수 초가 걸리는데, 자동완성은
+ * 최신성보다 즉답이 중요하고 대형주 목록은 하루 이틀 사이에 바뀌지 않는다.
+ *
+ * `enabled` 로 미루는 이유는 검색을 한 번도 안 쓰는 방문자에게 요청을 만들지
+ * 않기 위해서다. 한 번 받으면 훅이 들고 있으므로 다시 부르지 않는다.
+ */
+export function useTickerUniverse(enabled: boolean): AsyncData<RepresentativeStock[]> {
+  return useAsyncData(
+    async () => {
+      const res = await fetchRepresentativeStocks({ market: "all", source: "fallback" });
+      return res.items;
+    },
+    [],
+    { enabled },
+  );
 }
 
 export function usePortfolio(): AsyncData<PortfolioReport> {
