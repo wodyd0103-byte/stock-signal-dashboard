@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, type KeyboardEvent } from "react";
+import { nextRovingIndex } from "./rovingFocus";
 
 /**
  * WAI-ARIA 탭 패턴의 배선만 제공한다. 모양은 부르는 쪽이 정한다.
@@ -34,17 +35,10 @@ export function useTabList<T extends string>({
   const panelId = (id: T) => `${base}-panel-${id}`;
 
   function onKeyDown(event: KeyboardEvent<HTMLElement>) {
-    const index = ids.indexOf(active);
-    if (index < 0) return;
-
-    let next: number | null = null;
-    if (event.key === "ArrowRight") next = (index + 1) % ids.length;
-    else if (event.key === "ArrowLeft") next = (index - 1 + ids.length) % ids.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = ids.length - 1;
+    // 가로 배치라 좌우만. 위아래는 페이지 스크롤로 흘려보낸다.
+    const next = nextRovingIndex(event.key, ids.indexOf(active), ids.length, "horizontal");
     if (next === null) return;
 
-    // 좌우 화살표는 가로 탭 묶음 안에서만 쓰이므로 페이지 스크롤을 막는다.
     event.preventDefault();
     onChange(ids[next]);
     // 선택만 옮기면 포커스는 옛 탭에 남아 다음 화살표가 엉뚱한 곳에서 출발한다.
