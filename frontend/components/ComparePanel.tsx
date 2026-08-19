@@ -82,6 +82,7 @@ export default function ComparePanel({
               onKeyDown={(e) => {
                 if (e.key === "Enter") void run();
               }}
+              aria-label="비교할 종목 (쉼표로 구분)"
               placeholder="005930, 000660, 035420"
               className="h-11 flex-1 rounded-xl bg-surface px-3 text-sm font-semibold text-ink placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50"
             />
@@ -98,7 +99,11 @@ export default function ComparePanel({
               비교
             </button>
           </div>
-          {err ? <p className="mt-2 text-xs text-down">{err}</p> : null}
+          {err ? (
+            <p role="alert" className="mt-2 text-xs text-down">
+              {err}
+            </p>
+          ) : null}
 
           {valid.length >= 2 ? (
             <div className="mt-4 overflow-x-auto">

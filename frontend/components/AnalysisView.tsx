@@ -31,7 +31,7 @@ export default function AnalysisView({ analysis, loading, error, period, onAddWa
   if (!analysis && loading) return <LoadingSkeleton />;
   if (!analysis && error) {
     return (
-      <div className="card text-center">
+      <div role="alert" className="card text-center">
         <AlertCircle size={20} className="mx-auto text-down" />
         <p className="mt-2 text-base font-bold text-ink">분석을 불러오지 못했습니다</p>
         <p className="mt-1 text-sm text-muted">{error}</p>
@@ -206,7 +206,10 @@ function DataSourceBanner({ analysis }: { analysis: AnalysisResponse }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4">
+    // 스켈레톤은 눈에만 보인다. 읽어주는 쪽에는 "불러오는 중"이라고 알려야
+    // 빈 화면에서 기다려야 할지 판단할 수 있다.
+    <div className="space-y-4" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">분석을 불러오는 중입니다</span>
       <div className="h-32 animate-pulse rounded-card bg-surface" />
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="h-[380px] animate-pulse rounded-card bg-surface" />

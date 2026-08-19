@@ -146,7 +146,13 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
             <h2 className="mt-0.5 text-heading text-ink">내 보유 종목 진단</h2>
           </div>
         </div>
-        <button type="button" onClick={refetch} className="btn-ghost">
+        <button
+          type="button"
+          onClick={refetch}
+          aria-label="포트폴리오 새로고침"
+          aria-busy={loading}
+          className="btn-ghost"
+        >
           <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
@@ -162,12 +168,14 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
         <input
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
+          aria-label="종목 코드"
           placeholder="종목 (005930)"
           className="col-span-2 h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50 sm:col-span-1"
         />
         <input
           value={qty}
           onChange={(e) => setQty(e.target.value)}
+          aria-label="수량"
           placeholder="수량"
           inputMode="decimal"
           className="h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50"
@@ -175,6 +183,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
         <input
           value={avg}
           onChange={(e) => setAvg(e.target.value)}
+          aria-label="평단가"
           placeholder="평단가"
           inputMode="decimal"
           className="h-11 min-w-0 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50"
@@ -189,7 +198,9 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
       </form>
 
       {error ? (
-        <div className="mb-3 rounded-xl bg-down/10 px-3 py-2 text-xs text-down">{error}</div>
+        <div role="alert" className="mb-3 rounded-xl bg-down/10 px-3 py-2 text-xs text-down">
+          {error}
+        </div>
       ) : null}
 
       {!report || report.holdings.length === 0 ? (
@@ -339,7 +350,11 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
 
             {/* 예전에는 이 요청이 실패해도 catch에서 조용히 삼켜 아무 일도 없었던
                 것처럼 보였다. */}
-            {rebalance.error ? <p className="mt-3 text-xs text-down">{rebalance.error}</p> : null}
+            {rebalance.error ? (
+              <p role="alert" className="mt-3 text-xs text-down">
+                {rebalance.error}
+              </p>
+            ) : null}
 
             {manualMode ? (
               <div className="mt-3 rounded-xl bg-surface p-3">
@@ -515,6 +530,7 @@ function HoldingRow({
         <button
           type="button"
           onClick={onRemove}
+          aria-label={`${h.name} 삭제`}
           className="ml-auto rounded-lg p-1.5 text-faint hover:text-down"
         >
           <Trash2 size={14} />
@@ -553,6 +569,7 @@ function HoldingRow({
       <button
         type="button"
         onClick={onRemove}
+        aria-label={`${h.name} 삭제`}
         className="rounded-lg p-1.5 text-faint opacity-0 transition-opacity hover:bg-down/10 hover:text-down group-hover:opacity-100"
       >
         <Trash2 size={14} />
