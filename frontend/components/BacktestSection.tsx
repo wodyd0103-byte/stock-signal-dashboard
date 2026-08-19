@@ -91,7 +91,9 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
           </div>
 
           {error ? (
-            <div className="rounded-card bg-down/10 px-4 py-3 text-sm text-down">{error}</div>
+            <div role="alert" className="rounded-card bg-down/10 px-4 py-3 text-sm text-down">
+              {error}
+            </div>
           ) : null}
 
           {result ? (

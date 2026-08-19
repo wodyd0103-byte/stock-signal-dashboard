@@ -56,13 +56,19 @@ export default function DiscoveryRail({
           type="button"
           onClick={active.refetch}
           className="ml-auto rounded-lg p-2 text-muted hover:bg-bg hover:text-ink"
+          aria-label="목록 새로고침"
+          aria-busy={loading}
           title="새로고침"
         >
           <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
 
-      {error ? <p className="px-2 py-3 text-xs text-down">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="px-2 py-3 text-xs text-down">
+          {error}
+        </p>
+      ) : null}
 
       <div className="flex-1 space-y-1 overflow-y-auto">
         {loading && (tab === "buy" ? buy : surge).length === 0 ? (

@@ -1,21 +1,87 @@
 "use client";
 
+import { useEffect, useId, useRef } from "react";
 import { ExternalLink, ShieldAlert, X } from "lucide-react";
 
 const disclaimer =
   "본 도구의 분석·예측·신호는 과거 데이터 기반 알고리즘 참고 정보입니다. 실거래는 외부 증권사 앱에서 수행하며, 모든 투자 판단과 책임은 본인에게 있습니다.";
 
+/** 포커스를 받을 수 있는 것들. disabled 와 tabindex=-1 은 순회에서 뺀다. */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    // 열기 직전에 포커스가 있던 곳. 닫을 때 여기로 돌려보내지 않으면 키보드
+    // 사용자는 문서 맨 처음부터 다시 Tab 해야 한다.
+    const opener = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      // 포커스 트랩. 없으면 Tab 이 대화상자 밖(뒤에 깔린 페이지)으로 새어나가
+      // 화면에 보이지도 않는 것에 포커스가 간다.
+      const panel = panelRef.current;
+      if (!panel) return;
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (!items.length) {
+        event.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || active === panel)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      opener?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* 바깥 클릭으로 닫기. 키보드에는 Escape 와 닫기 버튼이 있으므로 이 요소
+          자체를 포커스 대상으로 만들지 않는다(트랩 안에 빈 정거장이 생긴다). */}
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg rounded-card bg-bg p-6 shadow-cardHover">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative z-10 w-full max-w-lg rounded-card bg-bg p-6 shadow-cardHover outline-none"
+      >
         <div className="flex items-start justify-between">
-          <h2 className="text-heading text-ink">정보 · 설정</h2>
+          <h2 id={titleId} className="text-heading text-ink">
+            정보 · 설정
+          </h2>
           <button
             type="button"
             onClick={onClose}
+            aria-label="설정 닫기"
             className="rounded-lg p-1.5 text-muted hover:bg-surface"
           >
             <X size={18} />
