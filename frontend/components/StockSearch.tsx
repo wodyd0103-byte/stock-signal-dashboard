@@ -4,6 +4,7 @@ import { FormEvent, KeyboardEvent, useId, useState } from "react";
 import { Search } from "lucide-react";
 import { useTickerUniverse } from "@/hooks/queries";
 import { periods } from "@/lib/api";
+import { useRadioGroup } from "@/hooks/useRadioGroup";
 import { matchTickers } from "@/lib/tickerSearch";
 import type { Period, RepresentativeStock } from "@/lib/types";
 
@@ -58,6 +59,13 @@ export default function StockSearch({
     setSyncedQuery(ticker);
     setActiveIndex(-1);
   }
+
+  const periodGroup = useRadioGroup<Period>({
+    values: periods.map((p) => p.value),
+    active: period,
+    onChange: setPeriod,
+    label: "조회 기간",
+  });
 
   const listboxId = useId();
   const optionId = (index: number) => `${listboxId}-option-${index}`;
@@ -160,12 +168,15 @@ export default function StockSearch({
         ) : null}
       </div>
 
-      <div className="flex h-12 min-w-0 grow items-center rounded-xl bg-surface p-1 sm:grow-0">
+      <div
+        {...periodGroup.groupProps}
+        className="flex h-12 min-w-0 grow items-center rounded-xl bg-surface p-1 sm:grow-0"
+      >
         {periods.map((item) => (
           <button
             key={item.value}
             type="button"
-            onClick={() => setPeriod(item.value)}
+            {...periodGroup.getRadioProps(item.value)}
             className={`h-10 grow rounded-lg px-2 text-sm font-bold transition-colors sm:grow-0 sm:px-3 ${
               period === item.value ? "bg-bg text-ink shadow-card" : "text-muted hover:text-sub"
             }`}

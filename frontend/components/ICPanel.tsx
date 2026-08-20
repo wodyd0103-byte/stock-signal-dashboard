@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, FlaskConical } from "lucide-react";
 import { useFactorIC } from "@/hooks/queries";
+import { useRadioGroup } from "@/hooks/useRadioGroup";
 import type { FactorIC } from "@/lib/types";
 
 const horizons = [3, 5, 10];
@@ -11,6 +12,12 @@ const horizons = [3, 5, 10];
 export default function ICPanel() {
   const [open, setOpen] = useState(false);
   const [horizon, setHorizon] = useState(5);
+  const horizonGroup = useRadioGroup<number>({
+    values: horizons,
+    active: horizon,
+    onChange: setHorizon,
+    label: "예측 시계",
+  });
 
   // 접혀 있는 동안에는 요청하지 않는다. 펴는 순간 처음 부르고, 시계를 바꾸면
   // 그 시계로 다시 부르되 이미 본 시계는 캐시에서 즉시 나온다.
@@ -42,12 +49,15 @@ export default function ICPanel() {
           {/* horizon 토글 */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-muted">예측 시계</span>
-            <div className="flex h-9 items-center rounded-xl bg-surface p-1">
+            <div
+              {...horizonGroup.groupProps}
+              className="flex h-9 items-center rounded-xl bg-surface p-1"
+            >
               {horizons.map((h) => (
                 <button
                   key={h}
                   type="button"
-                  onClick={() => setHorizon(h)}
+                  {...horizonGroup.getRadioProps(h)}
                   className={`h-7 rounded-lg px-3 text-xs font-bold transition-colors ${horizon === h ? "bg-bg text-ink shadow-card" : "text-muted hover:text-sub"}`}
                 >
                   {h}일

@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useRadioGroup } from "@/hooks/useRadioGroup";
 import type { PricePoint } from "@/lib/types";
 
 type TF = "D" | "W" | "M";
@@ -51,6 +52,12 @@ function resample(data: PricePoint[], tf: TF): PricePoint[] {
 
 export default function PriceChart({ data }: { data: PricePoint[] }) {
   const [tf, setTf] = useState<TF>("D");
+  const tfGroup = useRadioGroup<TF>({
+    values: ["D", "W", "M"],
+    active: tf,
+    onChange: setTf,
+    label: "봉 단위",
+  });
   const series = useMemo(() => resample(data, tf), [data, tf]);
 
   const first = series[0]?.close ?? 0;
@@ -68,16 +75,20 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
         </div>
         {/* 타임프레임 토글 */}
         <div className="flex items-center rounded-xl bg-surface p-1">
-          {(["D", "W", "M"] as TF[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTf(t)}
-              className={`h-8 rounded-lg px-3 text-xs font-bold transition-colors ${tf === t ? "bg-card text-ink shadow-card" : "text-muted hover:text-sub"}`}
-            >
-              {TF_LABEL[t]}
-            </button>
-          ))}
+          {/* "분·틱 N/A" 안내는 라디오 묶음 밖에 둔다. 안에 있으면 화살표가
+              고를 수 없는 것 위에서 멈추고 개수도 잘못 읽힌다. */}
+          <div {...tfGroup.groupProps} className="flex items-center">
+            {(["D", "W", "M"] as TF[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                {...tfGroup.getRadioProps(t)}
+                className={`h-8 rounded-lg px-3 text-xs font-bold transition-colors ${tf === t ? "bg-card text-ink shadow-card" : "text-muted hover:text-sub"}`}
+              >
+                {TF_LABEL[t]}
+              </button>
+            ))}
+          </div>
           <span
             className="ml-1 cursor-not-allowed px-2 text-[10px] font-medium text-faint"
             title="분/틱은 실시간 데이터가 없어 제공하지 않습니다"
