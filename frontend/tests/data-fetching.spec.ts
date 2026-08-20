@@ -92,8 +92,8 @@ test("늦게 온 응답이 그 사이 고른 값을 덮어쓰지 않는다", asy
   await expect(panel.getByText(/5일 시계/)).toBeVisible();
 
   // 느린 3일을 고른 뒤 곧바로 10일로 바꾼다. 3일 응답이 나중에 도착한다.
-  await panel.getByRole("button", { name: "3일", exact: true }).click();
-  await panel.getByRole("button", { name: "10일", exact: true }).click();
+  await panel.getByRole("radio", { name: "3일", exact: true }).click();
+  await panel.getByRole("radio", { name: "10일", exact: true }).click();
   await expect(panel.getByText(/10일 시계/)).toBeVisible();
 
   // 3일 응답이 도착하고도 남을 시간. 화면은 10일 그대로여야 한다.

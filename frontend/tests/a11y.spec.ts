@@ -227,6 +227,133 @@ test("새로고침 버튼은 탭 묶음 밖에 있다", async ({ page }) => {
   await expect(page.getByRole("button", { name: "목록 새로고침" })).toBeVisible();
 });
 
+// --- 라디오 묶음 ---------------------------------------------------------
+
+test("조회 기간은 radiogroup 으로 노출되고 선택 상태가 읽힌다", async ({ page }) => {
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "조회 기간" });
+  await expect(group.getByRole("radio")).toHaveCount(5);
+
+  const oneYear = group.getByRole("radio", { name: "1년" });
+  const threeMonths = group.getByRole("radio", { name: "3개월" });
+  await expect(oneYear).toHaveAttribute("aria-checked", "true");
+  await expect(threeMonths).toHaveAttribute("aria-checked", "false");
+
+  await threeMonths.click();
+  await expect(threeMonths).toHaveAttribute("aria-checked", "true");
+  await expect(oneYear).toHaveAttribute("aria-checked", "false");
+});
+
+test("라디오 묶음도 Tab 한 번에 지나간다", async ({ page }) => {
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "조회 기간" });
+  await expect(group.getByRole("radio", { name: "1년" })).toHaveAttribute("tabindex", "0");
+  await expect(group.getByRole("radio", { name: "1개월" })).toHaveAttribute("tabindex", "-1");
+  await expect(group.getByRole("radio", { name: "3년" })).toHaveAttribute("tabindex", "-1");
+});
+
+test("라디오는 위아래 화살표도 받는다", async ({ page }) => {
+  // 탭 묶음은 좌우만 받지만(가로 배치) 네이티브 라디오는 네 방향을 다 받는다.
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "조회 기간" });
+  const oneYear = group.getByRole("radio", { name: "1년" });
+  await oneYear.focus();
+
+  await page.keyboard.press("ArrowDown");
+  const threeYears = group.getByRole("radio", { name: "3년" });
+  await expect(threeYears).toHaveAttribute("aria-checked", "true");
+  await expect(threeYears).toBeFocused();
+
+  await page.keyboard.press("ArrowUp");
+  await expect(oneYear).toBeFocused();
+});
+
+test("라디오 화살표는 양 끝에서 감기고 Home/End 로 건너뛴다", async ({ page }) => {
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "조회 기간" });
+  await group.getByRole("radio", { name: "1개월" }).click();
+  await group.getByRole("radio", { name: "1개월" }).focus();
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(group.getByRole("radio", { name: "3년" })).toBeFocused();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(group.getByRole("radio", { name: "1개월" })).toBeFocused();
+
+  await page.keyboard.press("End");
+  await expect(group.getByRole("radio", { name: "3년" })).toBeFocused();
+
+  await page.keyboard.press("Home");
+  await expect(group.getByRole("radio", { name: "1개월" })).toBeFocused();
+});
+
+test("기간을 화살표로 고르면 그 기간으로 조회한다", async ({ page }) => {
+  await openApp(page);
+  const requests: string[] = [];
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (url.pathname.includes("/analysis")) requests.push(url.search);
+  });
+
+  const group = page.getByRole("radiogroup", { name: "조회 기간" });
+  await group.getByRole("radio", { name: "1년" }).focus();
+  await page.keyboard.press("ArrowRight"); // 1년 → 3년
+  await page.getByRole("button", { name: "분석" }).click();
+
+  await expect.poll(() => requests.some((q) => q.includes("period=3y"))).toBe(true);
+});
+
+test("차트 봉 단위도 같은 패턴을 쓴다", async ({ page }) => {
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "봉 단위" });
+  await expect(group.getByRole("radio")).toHaveCount(3);
+
+  const daily = group.getByRole("radio", { name: "일" });
+  await expect(daily).toHaveAttribute("aria-checked", "true");
+
+  await daily.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(group.getByRole("radio", { name: "주" })).toHaveAttribute("aria-checked", "true");
+});
+
+test("고를 수 없는 안내는 라디오 묶음 밖에 있다", async ({ page }) => {
+  // "분·틱 N/A" 는 버튼이 아니라 설명이다. 묶음 안에 있으면 화살표가
+  // 거기서 멈추고 "3개 중 4번째" 같은 소리가 난다.
+  await openApp(page);
+  const group = page.getByRole("radiogroup", { name: "봉 단위" });
+  await expect(group).not.toContainText("N/A");
+});
+
+test("포트폴리오의 전략·최적화 묶음도 라디오로 노출된다", async ({ page }) => {
+  await openApp(page);
+  await page.getByRole("tab", { name: "포트폴리오" }).click();
+  await page.getByRole("button", { name: "포트폴리오 새로고침" }).waitFor();
+
+  const strategy = page.getByRole("radiogroup", { name: "리밸런싱 전략" });
+  await expect(strategy.getByRole("radio")).toHaveCount(3);
+  await expect(strategy.getByRole("radio", { name: "신호" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+
+  const optimize = page.getByRole("radiogroup", { name: "최적화 방식" });
+  await expect(optimize.getByRole("radio")).toHaveCount(2);
+  await expect(optimize.getByRole("radio", { name: "최대 샤프" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+});
+
+test("리서치의 예측 시계도 라디오로 노출된다", async ({ page }) => {
+  await openApp(page);
+  await page.getByRole("tab", { name: "리서치" }).click();
+  await page.getByRole("button", { name: /어느 신호가 실제로 먹히나/ }).click();
+
+  const group = page.getByRole("radiogroup", { name: "예측 시계" });
+  await expect(group.getByRole("radio")).toHaveCount(3);
+  await expect(group.getByRole("radio", { name: "5일" })).toHaveAttribute("aria-checked", "true");
+});
+
 test("보유 종목 삭제 버튼은 어느 종목인지까지 읽힌다", async ({ page }) => {
   await openApp(page);
   await page.getByRole("tab", { name: "포트폴리오" }).click();

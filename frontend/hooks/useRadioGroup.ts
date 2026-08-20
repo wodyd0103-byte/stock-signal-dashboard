@@ -19,7 +19,7 @@ import { nextRovingIndex } from "./rovingFocus";
  * IC 시계처럼 선택이 요청을 부르는 자리에서는 훑고 지나가는 동안 요청이
  * 뜨는데, 이는 클릭으로 훑을 때와 같고 `useAsyncData` 가 늦은 응답을 버린다.
  */
-export function useRadioGroup<T extends string>({
+export function useRadioGroup<T extends string | number>({
   values,
   active,
   onChange,

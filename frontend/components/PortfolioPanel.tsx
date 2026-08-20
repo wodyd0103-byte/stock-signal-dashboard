@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { usePortfolio } from "@/hooks/queries";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useRadioGroup } from "@/hooks/useRadioGroup";
 import { addHolding, deleteHolding, fetchOptimize, fetchRebalance } from "@/lib/api";
 import type { HoldingAnalysis, OptimizeResult, RebalancePlan } from "@/lib/types";
 
@@ -59,6 +60,12 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
   const [cash, setCash] = useState("");
   const [buffer, setBuffer] = useState("0");
   const [strategy, setStrategy] = useState<Strategy>("signal");
+  const strategyGroup = useRadioGroup<Strategy>({
+    values: ["equal", "signal", "risk_parity"],
+    active: strategy,
+    onChange: setStrategy,
+    label: "리밸런싱 전략",
+  });
   const [plan, setPlan] = useState<RebalancePlan | null>(null);
   const planLoading = rebalance.pending;
 
@@ -68,6 +75,12 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
 
   // 최적화 (Markowitz)
   const [optMethod, setOptMethod] = useState<OptMethod>("max_sharpe");
+  const optGroup = useRadioGroup<OptMethod>({
+    values: ["max_sharpe", "min_variance"],
+    active: optMethod,
+    onChange: setOptMethod,
+    label: "최적화 방식",
+  });
   const [opt, setOpt] = useState<OptimizeResult | null>(null);
   const optLoading = optimize.pending;
 
@@ -314,12 +327,15 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
                   className="h-10 w-20 rounded-xl bg-surface px-3 text-sm font-semibold text-ink tabular placeholder:text-faint outline-none focus:bg-card focus:ring-2 focus:ring-toss/50"
                 />
               </label>
-              <div className="flex h-10 items-center rounded-xl bg-surface p-1">
+              <div
+                {...strategyGroup.groupProps}
+                className="flex h-10 items-center rounded-xl bg-surface p-1"
+              >
                 {(["equal", "signal", "risk_parity"] as Strategy[]).map((s) => (
                   <button
                     key={s}
                     type="button"
-                    onClick={() => setStrategy(s)}
+                    {...strategyGroup.getRadioProps(s)}
                     className={`h-8 rounded-lg px-2.5 text-xs font-bold transition-colors ${strategy === s ? "bg-card text-ink shadow-card" : "text-muted hover:text-sub"}`}
                   >
                     {STRAT_LABEL[s]}
@@ -447,12 +463,15 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
               최근 1년 수익률·Ledoit-Wolf 수축 공분산 기반. 현재 보유 종목 한정.
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-10 items-center rounded-xl bg-surface p-1">
+              <div
+                {...optGroup.groupProps}
+                className="flex h-10 items-center rounded-xl bg-surface p-1"
+              >
                 {(["max_sharpe", "min_variance"] as OptMethod[]).map((m) => (
                   <button
                     key={m}
                     type="button"
-                    onClick={() => setOptMethod(m)}
+                    {...optGroup.getRadioProps(m)}
                     className={`h-8 rounded-lg px-2.5 text-xs font-bold transition-colors ${optMethod === m ? "bg-card text-ink shadow-card" : "text-muted hover:text-sub"}`}
                   >
                     {OPT_LABEL[m]}
