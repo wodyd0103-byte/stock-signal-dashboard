@@ -3,7 +3,10 @@
 실제 백엔드가 돌려준 응답을 그대로 받아 둔 것입니다. 두 곳에서 씁니다.
 
 - `tests/mock-api.ts` — Playwright가 백엔드 없이 돌도록 라우트를 가로채 이 파일들을 돌려줍니다.
-- `app/api/demo/[...path]/route.ts` — `NEXT_PUBLIC_DEMO=1`로 배포했을 때 앱이 읽는 API입니다.
+- `scripts/build-demo-api.mjs` — `NEXT_PUBLIC_DEMO=1`로 빌드할 때 이 파일들을
+  `public/api/demo/` 아래 확장자 없는 정적 파일로 펼칩니다. 앱은 그것을 읽습니다.
+  (예전에는 `app/api/demo/[...path]/route.ts` 라우트 핸들러였는데, GitHub Pages는
+  정적 파일만 서빙하므로 서버가 필요 없는 형태로 바꿨습니다.)
 
 시세·지표·해석 문장은 손으로 고치지 마세요. 값이 진짜라서 의미가 있습니다 — 긴 한글 문장이
 살아 있어야 가로 넘침 회귀를 잡을 수 있고, 데모 화면도 실제로 계산된 숫자를 보여줍니다.

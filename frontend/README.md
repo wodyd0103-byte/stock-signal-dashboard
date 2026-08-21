@@ -4,6 +4,9 @@ Next.js 16 (App Router) · React 18 · TypeScript · Tailwind CSS · Recharts ·
 
 제품 설명, API 목록, 신호 엔진 동작은 [루트 README](../README.md)에 있습니다. 이 문서는 프론트엔드 코드를 고칠 때 필요한 것만 다룹니다.
 
+> 왜 이런 구조인지(훅 분리 이유, 테스트 세 층의 분업, 색 토큰의 역할 분리)는
+> [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)에 있습니다.
+
 ## 실행
 
 ```bash
