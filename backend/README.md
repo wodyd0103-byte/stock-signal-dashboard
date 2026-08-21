@@ -96,79 +96,12 @@ GET /api/stocks/AAPL/backtest?period=1y&initial_capital=10000000&strategy=regime
 
 지원 전략은 `absolute_score_strategy`, `percentile_rank_strategy`, `ml_probability_strategy`, `regime_adjusted_strategy`입니다.
 
-## 실시간 운용 API
+## 실시간 운용 API — 없음
 
-실시간 운용은 기본적으로 paper trading입니다. 실제 주문 API는 `BrokerAdapter` 인터페이스로 추상화되어 있으며, 현재 기본 구현은 `PaperBrokerAdapter`입니다. `KisBrokerAdapter`는 한국투자증권 Open API 연결용 구조만 제공하고 실제 주문은 잠금 처리되어 있습니다.
+예전 이 자리에 `live_trading_engine`, `broker_adapter`, `risk_guard` 같은 서비스와
+`/api/live/*` 엔드포인트가 문서화돼 있었습니다. **그 코드는 저장소에 없습니다.**
+설계 단계에서 지워졌는데 문서만 남아 있었습니다(2026-08-22 확인).
 
-추가 서비스:
-
-- `live_trading_engine.py`: 활성화된 전략 모드 tick 실행, 신호 분석, 주문 후보 생성, 포지션/성과 업데이트
-- `strategy_mode_service.py`: 단타, 단기투자, 장기투자 모드 설정 저장/조회/수정
-- `resource_manager.py`: 전체 예산, 모드별 예산, 사용 가능 현금, 중복 포지션, 종목당 비중 제한 검사
-- `risk_guard.py`: 손절, 익절, 최대 보유일, 일일 손실 제한, 전체 MDD 제한, Emergency Stop 처리
-- `broker_adapter.py`: PaperBrokerAdapter, KisBrokerAdapter, MockBrokerAdapter 인터페이스
-
-신규 테이블:
-
-- `trading_settings`
-- `strategy_modes`
-- `positions`
-- `orders`
-- `trades`
-- `equity_snapshots`
-
-필수 환경변수:
-
-```env
-TRADING_MODE=paper
-LIVE_TRADING_ENABLED=false
-ENABLE_ORDER_EXECUTION=false
-BROKER_PROVIDER=paper
-PAPER_INITIAL_CASH=1000000
-COMMISSION_RATE=0.00015
-SLIPPAGE_RATE=0.0005
-DAILY_LOSS_LIMIT_PCT=3
-MAX_TOTAL_DRAWDOWN_PCT=10
-MAX_POSITION_PCT=20
-ALLOW_DUPLICATE_POSITIONS=false
-LIVE_REFRESH_SECONDS=5
-LIVE_ENGINE_TICK_SECONDS=10
-KIS_APP_KEY=
-KIS_APP_SECRET=
-KIS_ACCOUNT_NO=
-KIS_ACCOUNT_PRODUCT_CODE=
-KIS_BASE_URL=
-```
-
-실거래 주문 잠금 조건:
-
-- `TRADING_MODE=live`
-- `LIVE_TRADING_ENABLED=true`
-- `ENABLE_ORDER_EXECUTION=true`
-- `BROKER_PROVIDER=kis` 또는 지원 broker
-- broker API Key가 서버 `.env`에 존재
-- 프론트 설정에서 실거래 위험 확인 완료
-- `emergency_stop=false`
-
-조건을 충족하지 못하면 실거래 주문은 차단되며, paper trading에서는 모의 주문으로만 기록됩니다. sample fallback 데이터 기반 주문, 예산 부족, 리스크 초과, 일일 손실 제한, 전체 MDD 제한, 중복 포지션 금지 위반은 `orders.status=REJECTED`와 `reject_reason`으로 저장됩니다.
-
-API:
-
-```text
-GET  /api/live/status
-GET  /api/live/performance
-GET  /api/live/positions
-GET  /api/live/orders
-POST /api/live/start
-POST /api/live/pause
-POST /api/live/stop
-POST /api/live/emergency-stop
-GET  /api/live/modes
-PUT  /api/live/modes/{mode_id}
-POST /api/live/modes/{mode_id}/start
-POST /api/live/modes/{mode_id}/pause
-POST /api/live/modes/{mode_id}/stop
-GET  /api/live/settings
-PUT  /api/live/settings
-POST /api/live/positions/{position_id}/close
-```
+이 앱은 분석 전용입니다. 주문 실행 기능은 포함하지 않으며, 매매는 외부 증권사 앱에서
+하고 분석 결과는 CSV로 내보냅니다. 계획은 [루트 README의 로드맵](../README.md#로드맵)에
+한 줄로 남아 있습니다.

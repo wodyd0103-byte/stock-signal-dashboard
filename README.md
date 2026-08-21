@@ -177,6 +177,13 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 ```text
 backend/    FastAPI 앱 (routers, services, models, schemas, migrations, tests)
 frontend/   Next.js 앱 (app, components, lib)
-docs/       스크린샷 등 문서 자산
+docs/       설계 노트와 스크린샷
 start.ps1   원클릭 실행 스크립트
 ```
+
+## 설계 노트
+
+왜 이렇게 만들어졌는지는 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)에 있습니다 —
+배포가 앱과 갈라진 이유, 데이터 조회가 실패를 감추지 않는 방식, 테스트 세 층의 분업,
+새 테스트를 회귀 주입으로 검증하는 방법, 접근성 게이트와 자동 검사의 사각지대,
+그리고 **일부러 하지 않은 것과 알려진 빚**.
