@@ -101,7 +101,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
 
           <div className="rounded-xl bg-toss-50 p-4">
             <p className="text-sm font-bold text-toss-700">외부 매매 앱 워크플로</p>
-            <p className="mt-1 text-sm leading-6 text-toss-700/85">
+            <p className="mt-1 text-sm leading-6 text-toss-700">
               이 도구는 분석 전용입니다. 실제 매매는 외부 증권사 앱에서 수행하세요. 분석 결과는
               CSV로 내보낼 수 있습니다.
             </p>
@@ -118,7 +118,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
           <div className="rounded-xl bg-warnBg/60 p-4">
             <div className="flex items-start gap-2">
               <ShieldAlert size={18} className="mt-0.5 shrink-0 text-warn" />
-              <p className="text-sm leading-6 text-warn/90">{disclaimer}</p>
+              <p className="text-sm leading-6 text-warn">{disclaimer}</p>
             </div>
           </div>
         </div>

@@ -102,8 +102,10 @@ function FlowTile({
         {icon}
         {label}
       </p>
+      {/* 약한 수급은 예전에 opacity-70 으로 흐리게 했는데, 색이 AA 를 지켜도
+          투명도가 대비를 그만큼 깎아 결과가 미달이 된다. 색 토큰으로 표현한다. */}
       <p
-        className={`mt-1 text-sm font-bold tabular ${muted ? "opacity-70" : ""} ${up ? "text-up" : "text-down"}`}
+        className={`mt-1 text-sm font-bold tabular ${muted ? "text-muted" : up ? "text-up" : "text-down"}`}
       >
         {up ? "+" : ""}
         {value.toLocaleString()}

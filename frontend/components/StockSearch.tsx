@@ -189,7 +189,7 @@ export default function StockSearch({
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-toss px-4 text-base font-bold text-white transition-colors hover:bg-toss-600 disabled:cursor-not-allowed disabled:bg-toss-300 sm:min-w-28 sm:px-5"
+        className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-tossStrong px-4 text-base font-bold text-white transition-colors hover:bg-toss-600 disabled:cursor-not-allowed disabled:bg-toss-300 sm:min-w-28 sm:px-5"
       >
         {loading ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

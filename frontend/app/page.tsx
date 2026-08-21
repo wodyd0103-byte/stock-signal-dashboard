@@ -152,7 +152,7 @@ function Dashboard() {
                     {...tabs.getTabProps(t.id)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition ${
                       active
-                        ? "bg-toss text-white shadow-sm"
+                        ? "bg-tossStrong text-white shadow-sm"
                         : "text-muted hover:bg-surface hover:text-ink"
                     }`}
                   >

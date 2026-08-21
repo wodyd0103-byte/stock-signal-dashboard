@@ -2,7 +2,7 @@ import { AlertTriangle, FileText } from "lucide-react";
 import type { DisclosureInfo } from "@/lib/types";
 
 const catColor: Record<string, string> = {
-  실적: "bg-toss-50 text-toss-600",
+  실적: "bg-toss-50 text-toss-700",
   자금조달: "bg-down/15 text-down",
   자사주: "bg-up/15 text-up",
   계약: "bg-up/15 text-up",

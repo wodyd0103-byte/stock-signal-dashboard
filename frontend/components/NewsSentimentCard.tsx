@@ -1,4 +1,5 @@
 import { Newspaper } from "lucide-react";
+import { arcColor, textColor, textTint } from "@/lib/sentimentColor";
 import type { NewsSentiment } from "@/lib/types";
 
 /**
@@ -7,7 +8,10 @@ import type { NewsSentiment } from "@/lib/types";
  */
 export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
   const score = news.sentiment_score;
-  const color = score >= 60 ? "#F04452" : score <= 40 ? "#3182F6" : "#8B95A1";
+  // 막대는 계조, 글씨는 대비. 자세한 이유는 lib/sentimentColor.ts.
+  const bar = arcColor(score);
+  const color = textColor(score);
+  const tint = textTint(score);
 
   return (
     <div className="card">
@@ -19,7 +23,7 @@ export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
             최근 뉴스 분위기
           </h2>
         </div>
-        <span className="chip" style={{ background: `${color}1A`, color }}>
+        <span className="chip" style={{ background: tint, color }}>
           {news.label}
         </span>
       </div>
@@ -36,7 +40,7 @@ export default function NewsSentimentCard({ news }: { news: NewsSentiment }) {
         <div className="h-2 overflow-hidden rounded-full bg-surface">
           <div
             className="h-2 rounded-full transition-all duration-500"
-            style={{ width: `${score}%`, background: color }}
+            style={{ width: `${score}%`, background: bar }}
           />
         </div>
       </div>

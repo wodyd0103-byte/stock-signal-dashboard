@@ -79,7 +79,7 @@ export default function BacktestSection({ ticker, period }: { ticker: string; pe
               type="button"
               onClick={() => void run()}
               disabled={loading}
-              className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-toss px-5 text-sm font-bold text-white hover:bg-toss-600 disabled:bg-toss-300"
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-tossStrong px-5 text-sm font-bold text-white hover:bg-toss-600 disabled:bg-toss-300"
             >
               {loading ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

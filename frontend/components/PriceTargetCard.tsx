@@ -84,11 +84,11 @@ function ExitCard({ exit, currentPrice }: { exit: OptimalExit; currentPrice: num
   return (
     <div className="card bg-gradient-to-br from-toss-50 to-bg">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-toss text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-tossStrong text-white">
           <CalendarClock size={16} />
         </div>
         <div>
-          <p className="text-xs font-bold text-toss-600">권장 매도 시점</p>
+          <p className="text-xs font-bold text-toss-700">권장 매도 시점</p>
           <p className="text-[10px] text-muted">위험 조정 기대수익 최대 horizon</p>
         </div>
       </div>
@@ -97,7 +97,7 @@ function ExitCard({ exit, currentPrice }: { exit: OptimalExit; currentPrice: num
         <p className="text-display font-extrabold text-toss-700 tabular leading-none">
           {exit.horizon_days}
         </p>
-        <span className="text-base font-bold text-toss-600">일 뒤</span>
+        <span className="text-base font-bold text-toss-700">일 뒤</span>
       </div>
       <p className="mt-1 text-sm font-semibold text-sub">{exit.horizon_label}</p>
 
@@ -148,7 +148,7 @@ function TargetCard({ target }: { target: PriceTarget }) {
   return (
     <div className="card">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-up text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-upStrong text-white">
           <Target size={16} />
         </div>
         <div>

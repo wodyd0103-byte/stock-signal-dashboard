@@ -29,13 +29,13 @@ type OptMethod = "max_sharpe" | "min_variance";
 const OPT_LABEL: Record<OptMethod, string> = { max_sharpe: "최대 샤프", min_variance: "최소 분산" };
 
 const signalChip: Record<string, string> = {
-  "STRONG BUY": "bg-up text-white",
-  BUY: "bg-up text-white",
+  "STRONG BUY": "bg-upStrong text-white",
+  BUY: "bg-upStrong text-white",
   "WEAK BUY": "bg-up/15 text-up",
   HOLD: "bg-surface2 text-sub",
   "WEAK SELL": "bg-down/15 text-down",
-  SELL: "bg-down text-white",
-  "STRONG SELL": "bg-down text-white",
+  SELL: "bg-downStrong text-white",
+  "STRONG SELL": "bg-downStrong text-white",
 };
 
 export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) => void }) {
@@ -203,7 +203,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
         />
         <button
           type="submit"
-          className="col-span-2 inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600 sm:col-span-1"
+          className="col-span-2 inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-tossStrong px-4 text-sm font-bold text-white hover:bg-toss-600 sm:col-span-1"
         >
           <Plus size={16} />
           추가
@@ -268,7 +268,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
                   </span>
                 ))}
               </div>
-              <p className="mt-1.5 text-[10px] leading-4 text-warn/80">
+              <p className="mt-1.5 text-[10px] leading-4 text-warn">
                 고상관 종목은 동반 등락 → 종목 수 대비 실제 분산효과 낮음.
               </p>
             </div>
@@ -353,7 +353,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
               <button
                 type="button"
                 onClick={() => void runRebalance()}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-tossStrong px-4 text-sm font-bold text-white hover:bg-toss-600"
               >
                 {planLoading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -481,7 +481,7 @@ export default function PortfolioPanel({ onSelect }: { onSelect?: (t: string) =>
               <button
                 type="button"
                 onClick={() => void runOptimize()}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-tossStrong px-4 text-sm font-bold text-white hover:bg-toss-600"
               >
                 {optLoading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

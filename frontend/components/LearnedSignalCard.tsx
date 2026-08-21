@@ -1,10 +1,12 @@
 import { Cpu } from "lucide-react";
 import type { LearnedSignal } from "@/lib/types";
+import { textColor, textTint } from "@/lib/sentimentColor";
 
 /** IC 가중 학습 신호 — 손튜닝 점수와 별개, 데이터가 가중치 결정. */
 export default function LearnedSignalCard({ ls }: { ls: LearnedSignal }) {
   const s = ls.score;
-  const color = s >= 60 ? "#F04452" : s <= 40 ? "#3182F6" : "#8B95A1";
+  const color = textColor(s);
+  const tint = textTint(s);
 
   return (
     <div className="card">
@@ -16,7 +18,7 @@ export default function LearnedSignalCard({ ls }: { ls: LearnedSignal }) {
             IC 가중 factor
           </h2>
         </div>
-        <span className="chip" style={{ background: `${color}1A`, color }}>
+        <span className="chip" style={{ background: tint, color }}>
           {ls.label}
         </span>
       </div>
