@@ -26,9 +26,11 @@ const config: Config = {
         faint: "rgb(var(--c-faint) / <alpha-value>)",
         line: "rgb(var(--c-line) / <alpha-value>)",
 
-        // 토스 블루 (primary) — 양 테마 공통
+        // 토스 블루 (primary)
+        // DEFAULT 는 "글씨로 읽히는 파랑"이라 테마별로 다르다. 흰 글씨를 얹는
+        // 배경에는 tossStrong 을 쓴다 — 한 값이 둘 다 만족할 수 없다.
         toss: {
-          DEFAULT: "#3182F6",
+          DEFAULT: "rgb(var(--c-toss) / <alpha-value>)",
           50: "rgb(var(--c-toss-50) / <alpha-value>)",
           100: "#DEEBFF",
           200: "#B6D4FE",
@@ -38,22 +40,18 @@ const config: Config = {
           600: "#1A6CE0",
           700: "rgb(var(--c-toss-700) / <alpha-value>)",
         },
+        tossStrong: "rgb(var(--c-toss-strong) / <alpha-value>)",
 
-        // 한국 주식 컨벤션 (양 테마 공통 비비드)
-        up: "#F04452", // 상승 빨강
+        // 한국 주식 컨벤션 (빨강=상승, 파랑=하락)
+        up: "rgb(var(--c-up) / <alpha-value>)",
+        upStrong: "rgb(var(--c-up-strong) / <alpha-value>)",
         upBg: "#FEF2F2",
-        down: "#3182F6", // 하락 파랑
+        down: "rgb(var(--c-down) / <alpha-value>)",
+        downStrong: "rgb(var(--c-down-strong) / <alpha-value>)",
         downBg: "#EEF5FF",
 
-        // 신호 컬러 (기존 호환)
-        buy: "#F04452",
-        weakBuy: "#FF7B82",
-        hold: "#8B95A1",
-        weakSell: "#84B6FC",
-        sell: "#3182F6",
-
         // 노란/주황 보조
-        warn: "#F59F00",
+        warn: "rgb(var(--c-warn) / <alpha-value>)",
         warnBg: "rgb(var(--c-warnBg) / <alpha-value>)",
       },
       fontFamily: {

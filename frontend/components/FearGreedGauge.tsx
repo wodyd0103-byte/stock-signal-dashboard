@@ -1,3 +1,4 @@
+import { arcColor, textColor } from "@/lib/sentimentColor";
 import type { MarketSentiment } from "@/lib/types";
 
 /**
@@ -16,7 +17,8 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
   const needleX = cx + r * 0.82 * Math.cos(rad);
   const needleY = cy - r * 0.82 * Math.sin(rad);
 
-  const color = scoreColor(score);
+  // 숫자와 칩은 글씨라 대비 토큰을, 아크와 막대는 계조를 쓴다.
+  const color = textColor(score);
 
   // 5구간 아크 (공포 → 탐욕)
   const segments = [
@@ -92,7 +94,7 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
               <div
                 className="h-1.5 rounded-full"
-                style={{ width: `${c.score}%`, background: scoreColor(c.score) }}
+                style={{ width: `${c.score}%`, background: arcColor(c.score) }}
               />
             </div>
             <span className="w-8 text-right text-xs font-bold text-ink tabular">
@@ -108,14 +110,6 @@ export default function FearGreedGauge({ sentiment }: { sentiment: MarketSentime
       </p>
     </div>
   );
-}
-
-function scoreColor(score: number): string {
-  if (score <= 24) return "#3182F6";
-  if (score <= 44) return "#84B6FC";
-  if (score <= 55) return "#8B95A1";
-  if (score <= 74) return "#FF7B82";
-  return "#F04452";
 }
 
 /** 점수 from→to (0~100)를 반원 아크 path로. 0=왼쪽(180°), 100=오른쪽(0°). */

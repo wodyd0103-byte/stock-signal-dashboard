@@ -8,13 +8,13 @@ import { deleteWatchlist } from "@/lib/api";
 import type { Signal } from "@/lib/types";
 
 const signalChip: Record<Signal, string> = {
-  "STRONG BUY": "bg-up text-white",
-  BUY: "bg-up text-white",
+  "STRONG BUY": "bg-upStrong text-white",
+  BUY: "bg-upStrong text-white",
   "WEAK BUY": "bg-up/15 text-up",
   HOLD: "bg-surface text-sub",
   "WEAK SELL": "bg-down/15 text-down",
-  SELL: "bg-down text-white",
-  "STRONG SELL": "bg-down text-white",
+  SELL: "bg-downStrong text-white",
+  "STRONG SELL": "bg-downStrong text-white",
 };
 
 export interface WatchlistRailHandle {

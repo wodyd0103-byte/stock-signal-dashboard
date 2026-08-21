@@ -1,13 +1,13 @@
 import type { Signal, SignalScore } from "@/lib/types";
 
 const signalStyle: Record<Signal, { bg: string; text: string; emoji: string }> = {
-  "STRONG BUY": { bg: "bg-up text-white", text: "강력 매수", emoji: "🚀" },
-  BUY: { bg: "bg-up text-white", text: "매수", emoji: "📈" },
+  "STRONG BUY": { bg: "bg-upStrong text-white", text: "강력 매수", emoji: "🚀" },
+  BUY: { bg: "bg-upStrong text-white", text: "매수", emoji: "📈" },
   "WEAK BUY": { bg: "bg-up/15 text-up", text: "약매수", emoji: "↗" },
   HOLD: { bg: "bg-surface text-sub", text: "관망", emoji: "→" },
   "WEAK SELL": { bg: "bg-down/15 text-down", text: "약매도", emoji: "↘" },
-  SELL: { bg: "bg-down text-white", text: "매도", emoji: "📉" },
-  "STRONG SELL": { bg: "bg-down text-white", text: "강력 매도", emoji: "⚠" },
+  SELL: { bg: "bg-downStrong text-white", text: "매도", emoji: "📉" },
+  "STRONG SELL": { bg: "bg-downStrong text-white", text: "강력 매도", emoji: "⚠" },
 };
 
 function ScoreBar({

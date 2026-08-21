@@ -111,7 +111,7 @@ function Row({ f }: { f: FactorIC }) {
     f.verdict === "강함"
       ? "text-up"
       : f.verdict === "보통"
-        ? "text-toss-600"
+        ? "text-toss-700"
         : f.verdict === "약함"
           ? "text-sub"
           : "text-faint";

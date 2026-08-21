@@ -1,9 +1,11 @@
 import { Landmark } from "lucide-react";
 import type { Fundamental } from "@/lib/types";
+import { textColor, textTint } from "@/lib/sentimentColor";
 
 /** 재무/밸류에이션 카드 — PER/PBR/ROE/배당/52주 위치. */
 export default function FundamentalCard({ f }: { f: Fundamental }) {
-  const color = f.score >= 65 ? "#F04452" : f.score <= 35 ? "#3182F6" : "#8B95A1";
+  const color = textColor(f.score);
+  const tint = textTint(f.score);
   const tiles: { label: string; value: string }[] = [
     { label: "PER", value: f.per != null ? `${f.per.toFixed(1)}배` : "-" },
     { label: "PBR", value: f.pbr != null ? `${f.pbr.toFixed(2)}배` : "-" },
@@ -26,7 +28,7 @@ export default function FundamentalCard({ f }: { f: Fundamental }) {
             펀더멘털
           </h2>
         </div>
-        <span className="chip" style={{ background: `${color}1A`, color }}>
+        <span className="chip" style={{ background: tint, color }}>
           {f.score >= 65 ? "저평가 우호" : f.score <= 35 ? "밸류 부담" : "중립"}{" "}
           {f.score.toFixed(0)}
         </span>

@@ -5,32 +5,31 @@ import { mockApi } from "./mock-api";
 /**
  * 자동 접근성 검사 게이트.
  *
- * 두 갈래로 나눠서 본다.
+ * **WCAG 2.1 AA 규칙 전부에 대해 위반 0건**을 강제한다. 색 대비도 포함이다 —
+ * 예전에는 여기서 `color-contrast` 를 뺐었다. 화면당 48~72개가 걸렸고 원인이
+ * 팔레트 토큰이라 시맨틱 변경과 한 PR 에 섞을 수 없었기 때문이다. 지금은 팔레트를
+ * 고쳤으므로 제외할 이유가 없다.
  *
- * 1. **시맨틱 규칙은 0건**을 강제한다. 버튼 이름, 폼 이름, ARIA 속성 정합성 같은
- *    것들이다. 고치는 방법이 명확하고 화면 모양이 바뀌지 않으므로 게이트로 적합하다.
- *
- * 2. **색 대비(`color-contrast`)는 제외**한다. 기준선에서 48~72개 노드가 걸렸는데,
- *    원인이 팔레트 토큰(`--c-muted`, `--c-faint`)과 브랜드색(토스 블루, 상승 빨강)이
- *    4.5:1 에 조금씩 못 미치는 것이라 고치려면 앱 전체 톤과 README 스크린샷까지
- *    바뀐다. 시맨틱 변경과 한 PR 에 섞으면 diff 에서 둘을 구분할 수 없다.
- *    회귀 게이트도 걸지 않는다. axe 가 보고하는 색은 반투명 레이어가 합성된
- *    결과라 같은 토큰이 화면마다 다른 값으로 나온다(`--c-muted` 하나가
- *    #8b95a1/#909aa5/#969faa/#a1a6ae 로 흩어진다). 고정하면 투명도만 건드려도
- *    깨지는 게이트가 되므로, 안 되는 것을 되는 척하지 않고 뺐다.
- *    현재 실패 규모: 화면당 48~72 노드, 전경색 21종(모두 3개 토큰의 변종).
+ * 스캔 전에 애니메이션을 끝내는 이유: 카드가 페이드인 하는 중에 재면 axe 가
+ * 전환 도중의 색을 읽어 실제와 다른 값을 보고한다(배경이 #ffffff 가 아니라
+ * #f9fafb 로 잡히는 식). 기준선을 뜰 때 이것 때문에 위반이 3배로 부풀어 보였다.
  *
  * axe 가 못 보는 것(포커스 트랩, 포커스 복귀, 키보드 순회)은 같은 파일 아래쪽에서
  * 직접 검사한다. 자동 검사는 규칙 위반만 보고 "쓸 수 있는지"는 보지 않는다.
  */
-
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-async function scanSemantics(page: Page, label: string) {
-  const result = await new AxeBuilder({ page })
-    .withTags(WCAG)
-    .disableRules(["color-contrast"])
-    .analyze();
+/** 전환 애니메이션이 끝나기 전에 재면 axe 가 도중의 색을 읽는다. */
+async function settle(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))),
+  );
+}
+
+async function scanAll(page: Page, label: string) {
+  await settle(page);
+  const result = await new AxeBuilder({ page }).withTags(WCAG).analyze();
 
   const report = result.violations.map(
     (v) =>
@@ -45,29 +44,29 @@ async function openApp(page: Page) {
   await page.getByRole("combobox").waitFor();
 }
 
-test("분석 화면에 시맨틱 위반이 없다", async ({ page }) => {
+test("분석 화면에 접근성 위반이 없다", async ({ page }) => {
   await openApp(page);
-  await scanSemantics(page, "분석");
+  await scanAll(page, "분석");
 });
 
-test("포트폴리오 화면에 시맨틱 위반이 없다", async ({ page }) => {
+test("포트폴리오 화면에 접근성 위반이 없다", async ({ page }) => {
   await openApp(page);
   await page.getByRole("tab", { name: "포트폴리오" }).click();
   await page.getByRole("button", { name: "포트폴리오 새로고침" }).waitFor();
-  await scanSemantics(page, "포트폴리오");
+  await scanAll(page, "포트폴리오");
 });
 
-test("리서치 화면에 시맨틱 위반이 없다", async ({ page }) => {
+test("리서치 화면에 접근성 위반이 없다", async ({ page }) => {
   await openApp(page);
   await page.getByRole("tab", { name: "리서치" }).click();
-  await scanSemantics(page, "리서치");
+  await scanAll(page, "리서치");
 });
 
-test("설정 대화상자에 시맨틱 위반이 없다", async ({ page }) => {
+test("설정 대화상자에 접근성 위반이 없다", async ({ page }) => {
   await openApp(page);
   await page.getByRole("button", { name: "설정" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await scanSemantics(page, "설정");
+  await scanAll(page, "설정");
 });
 
 test("설정 대화상자에 이름이 붙어 있다", async ({ page }) => {
@@ -76,6 +75,109 @@ test("설정 대화상자에 이름이 붙어 있다", async ({ page }) => {
   await openApp(page);
   await page.getByRole("button", { name: "설정" }).click();
   await expect(page.getByRole("dialog", { name: "정보 · 설정" })).toBeVisible();
+});
+
+/**
+ * axe 가 판정을 포기한 자리를 직접 잰다.
+ *
+ * `color-contrast` 는 배경을 확신할 수 없으면 위반이 아니라 `incomplete` 로 넘긴다 —
+ * 반투명 오버레이 위의 대화상자, 그라디언트 카드, 차트 안의 글씨가 그렇다. 앱 전체에
+ * 100건 넘게 그 상태다. 실제로 `--c-warn` 을 예전 값으로 되돌려 보니 대화상자 본문이
+ * 미달인데도 스캔은 통과했다. 그래서 그 자리들은 직접 계산해서 못 박는다.
+ */
+async function contrastOf(page: Page, selector: string): Promise<number> {
+  return page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) throw new Error(`요소 없음: ${sel}`);
+
+    const parse = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
+    const over = (fg: number[], bg: number[], a: number) =>
+      [0, 1, 2].map((i) => fg[i] * a + bg[i] * (1 - a));
+    const lum = ([r, g, b]: number[]) => {
+      const f = (v: number) => {
+        const x = v / 255;
+        return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    };
+
+    // 배경 층을 안쪽에서 바깥쪽 순서로 모은 뒤, 바깥에서부터 겹쳐 내려온다.
+    // 위로 올라가며 바로 합성하면 뒤에 있어야 할 색이 앞을 덮어쓴다.
+    const layers: { rgb: number[]; a: number }[] = [];
+    for (let node: Element | null = el; node; node = node.parentElement) {
+      const [r, g, b, a = 1] = parse(getComputedStyle(node).backgroundColor);
+      if (a > 0) {
+        layers.push({ rgb: [r, g, b], a });
+        if (a >= 1) break;
+      }
+    }
+    let bg = [255, 255, 255];
+    for (let i = layers.length - 1; i >= 0; i -= 1) bg = over(layers[i].rgb, bg, layers[i].a);
+
+    const [fr, fg, fb, fa = 1] = parse(getComputedStyle(el).color);
+    const l1 = lum(over([fr, fg, fb], bg, fa));
+    const l2 = lum(bg);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }, selector);
+}
+
+test("axe 가 판정 못 하는 대화상자 본문도 AA 를 지킨다", async ({ page }) => {
+  await openApp(page);
+  await page.getByRole("button", { name: "설정" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+
+  // p 로 한정한다. 같은 클래스가 아이콘(svg)에도 붙어 있어서 그냥 클래스만
+  // 쓰면 글씨가 아니라 아이콘을 재게 된다 — 처음에 그래서 주입이 안 잡혔다.
+  for (const [label, selector] of [
+    ["투자 유의문", "[role=dialog] p[class*='text-warn']"],
+    ["외부 앱 안내", "[role=dialog] p[class*='text-toss-700']"],
+  ] as const) {
+    const ratio = await contrastOf(page, selector);
+    expect(ratio, `${label} 대비 ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+// --- 다크 테마 -----------------------------------------------------------
+
+/**
+ * 다크는 따로 돌려야 한다. 색 대비 기준선을 처음 뜰 때 라이트만 재서 48~72개로
+ * 봤는데, 다크는 분석 화면 하나가 136개였다. 브랜드색이 고정 hex 라 어두운 배경
+ * 위에서 그대로 쓰인 탓이었다 — 라이트만 보면 그 절반이 안 보인다.
+ */
+test.describe("다크 테마", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("다크가 켜져 있다", async ({ page }) => {
+    // 이 전제가 깨지면 아래 검사들이 라이트를 두 번 재는 셈이 된다.
+    await openApp(page);
+    const dark = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+    expect(dark).toBe(true);
+  });
+
+  test("분석 화면에 접근성 위반이 없다", async ({ page }) => {
+    await openApp(page);
+    await scanAll(page, "분석(다크)");
+  });
+
+  test("포트폴리오 화면에 접근성 위반이 없다", async ({ page }) => {
+    await openApp(page);
+    await page.getByRole("tab", { name: "포트폴리오" }).click();
+    await page.getByRole("button", { name: "포트폴리오 새로고침" }).waitFor();
+    await scanAll(page, "포트폴리오(다크)");
+  });
+
+  test("리서치 화면에 접근성 위반이 없다", async ({ page }) => {
+    await openApp(page);
+    await page.getByRole("tab", { name: "리서치" }).click();
+    await scanAll(page, "리서치(다크)");
+  });
+
+  test("설정 대화상자에 접근성 위반이 없다", async ({ page }) => {
+    await openApp(page);
+    await page.getByRole("button", { name: "설정" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await scanAll(page, "설정(다크)");
+  });
 });
 
 // --- axe 가 못 보는 것 ---------------------------------------------------

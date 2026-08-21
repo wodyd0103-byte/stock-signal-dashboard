@@ -76,18 +76,17 @@ describe("FearGreedGauge", () => {
   });
 
   it.each([
-    [24, "#3182F6"],
-    [25, "#84B6FC"],
-    [44, "#84B6FC"],
-    [45, "#8B95A1"],
-    [55, "#8B95A1"],
-    [56, "#FF7B82"],
-    [74, "#FF7B82"],
-    [75, "#F04452"],
-  ])("점수 %i의 색은 %s", (score, color) => {
+    [24, "--c-down"],
+    [44, "--c-down"],
+    [45, "--c-muted"],
+    [55, "--c-muted"],
+    [56, "--c-up"],
+    [100, "--c-up"],
+  ])("점수 %i의 글씨는 %s 토큰을 쓴다", (score, token) => {
     render(<FearGreedGauge sentiment={makeSentiment({ score })} />);
-    // 숫자 자체가 그 색으로 칠해진다. jsdom 은 hex 를 rgb 로 정규화한다.
-    expect(screen.getByText(String(score)).getAttribute("style")).toContain(hexToRgb(color));
+    // 숫자·칩은 글씨라 테마 토큰을 쓴다. 계조(5단)는 아크 쪽에만 남아 있다 —
+    // 이유는 lib/sentimentColor.ts. 경계 자체는 lib/sentimentColor.test.ts 가 본다.
+    expect(screen.getByText(String(score)).getAttribute("style")).toContain(token);
   });
 
   it("라벨은 그대로 노출한다", () => {
@@ -132,8 +131,3 @@ describe("FearGreedGauge", () => {
     expect(screen.getByText("공포 · 탐욕 지수")).toBeTruthy();
   });
 });
-
-function hexToRgb(hex: string): string {
-  const value = parseInt(hex.slice(1), 16);
-  return `rgb(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255})`;
-}

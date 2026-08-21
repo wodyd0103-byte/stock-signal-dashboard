@@ -92,7 +92,7 @@ export default function AnalysisView({ analysis, loading, error, period, onAddWa
               <button
                 type="button"
                 onClick={onAddWatchlist}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-toss px-4 text-sm font-bold text-white hover:bg-toss-600"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-tossStrong px-4 text-sm font-bold text-white hover:bg-toss-600"
               >
                 <Plus size={16} />
                 관심
@@ -195,7 +195,7 @@ function DataSourceBanner({ analysis }: { analysis: AnalysisResponse }) {
   }
 
   return (
-    <div className="flex items-center gap-2.5 rounded-card bg-toss-50 px-3 py-2 text-xs text-toss-600">
+    <div className="flex items-center gap-2.5 rounded-card bg-toss-50 px-3 py-2 text-xs text-toss-700">
       <CheckCircle2 size={15} className="shrink-0" />
       <p className="font-medium">
         실시간 데이터 · 출처 <span className="font-bold">{analysis.source}</span>
