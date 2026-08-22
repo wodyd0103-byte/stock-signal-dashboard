@@ -150,10 +150,42 @@ cd frontend
 npm run format:check   # Prettier. 고칠 때는 npm run format
 npm run lint           # ESLint
 npm run build          # 타입 체크 포함
-npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
+npx playwright test    # 레이아웃·요청 수·접근성. 백엔드 없이 돈다
 ```
 
 `cd frontend && npm install`이 `.githooks`를 커밋 훅으로 등록하므로, 포맷이 어긋난 커밋은 CI까지 가기 전에 로컬에서 막힙니다. 수동 등록은 `npm run hooks:install`, 우회는 `git commit --no-verify`입니다.
+
+## 측정 (Lighthouse)
+
+배포된 데모를 Lighthouse 12.8.2로 잰 값입니다. 각 3회 실행의 중앙값, 2026-08-22 측정.
+
+| | 모바일 | 데스크톱 |
+| --- | --- | --- |
+| Performance | 60 | 84 |
+| Accessibility | **100** | **100** |
+| Best Practices | **100** | **100** |
+| SEO | **100** | **100** |
+
+```bash
+npx lighthouse@12 https://wodyd0103-byte.github.io/stock-signal-dashboard/ --view
+npx lighthouse@12 https://wodyd0103-byte.github.io/stock-signal-dashboard/ --preset=desktop --view
+```
+
+접근성 100은 [`frontend/tests/a11y.spec.ts`](frontend/tests/a11y.spec.ts)가 매 PR마다
+같은 기준(WCAG 2.1 AA)을 4화면 × 2테마로 강제한 결과입니다. Lighthouse는 그것을 외부에서
+한 번 더 확인해 준 것이지, 여기서 처음 맞춘 값이 아닙니다.
+
+**성능은 좋지 않고, 두 가지 이유를 알고 있습니다.**
+
+- **폰트가 외부 CDN의 렌더 블로킹 스타일시트로 옵니다.** `preconnect`로 연결을 미리
+  열어 모바일 FCP가 4.7초 → 3.8초로 내려갔지만 **점수는 움직이지 않았습니다**(61 → 60,
+  실행 편차 58~68 안). 제대로 고치려면 `next/font`로 폰트를 번들에 넣어야 합니다.
+- **데스크톱 CLS 0.271** (0.1 이하가 기준). 분석 화면 스켈레톤이 약 500px인데 실제
+  내용은 4,300px여서, 로딩이 끝나는 순간 그 아래 종목 비교 카드가 밀려납니다.
+  스켈레톤에 큰 `min-height`를 박으면 오류·빈 상태에서 빈 화면이 생기므로 한 줄로는
+  고칠 수 없고, 손대지 않았습니다.
+
+둘 다 [설계 노트](docs/ARCHITECTURE.md#9-알려진-구조적-빚)에 남겨 두었습니다.
 
 ## 배포
 
@@ -163,10 +195,17 @@ npx playwright test    # 가로 넘침 회귀 테스트, 백엔드 없이 돈다
 
 값이 고정이라는 사실은 상단 배너와 데이터 출처 줄이 알리고, 데모에 없는 종목을 고르면 그렇다고 표시합니다. 개별 종목 분석은 삼성전자(005930) 응답만 포함돼 있습니다. 자세한 내용은 [frontend/README.md](frontend/README.md#배포-github-pages-와-데모-모드).
 
-## 로드맵
+## 회고와 로드맵
 
-- 실시간 paper trading 대시보드 (`/api/live/*`, 운용 모드별 예산·손절·익절 관리) — 설계 단계, 미구현
-- 컴포넌트 단위 테스트 (현재 e2e는 레이아웃 회귀만 본다)
+14일 동안 무엇을 바꿨고 무엇을 틀렸는지, 그리고 무엇을 남겨 두는지는
+[docs/RETROSPECTIVE.md](docs/RETROSPECTIVE.md)에 있습니다.
+
+남은 것 중 제일 먼저인 것 하나만 옮겨 적으면 — **백엔드에 인증이 전혀 없습니다.**
+로컬 전용이라 지금은 문제가 아니지만, 공개 IP에 띄우는 순간 누구나 남의 보유 종목을
+추가·삭제할 수 있습니다.
+
+실시간 주문 실행은 로드맵이 아니라 **범위 밖**입니다. 이 앱은 분석 전용이고, 매매는
+외부 증권사 앱에서 하며 결과는 CSV로 내보냅니다.
 
 ## 투자 유의사항
 
@@ -187,3 +226,5 @@ start.ps1   원클릭 실행 스크립트
 배포가 앱과 갈라진 이유, 데이터 조회가 실패를 감추지 않는 방식, 테스트 세 층의 분업,
 새 테스트를 회귀 주입으로 검증하는 방법, 접근성 게이트와 자동 검사의 사각지대,
 그리고 **일부러 하지 않은 것과 알려진 빚**.
+
+14일간의 회고는 [docs/RETROSPECTIVE.md](docs/RETROSPECTIVE.md)에 있습니다.
