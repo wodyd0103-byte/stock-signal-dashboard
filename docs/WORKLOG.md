@@ -137,6 +137,17 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - 출력 디렉터리를 `.gitignore`에 넣었다. 보유 수량과 평단가가 들어가는 개인 정보다.
 - **오늘 작업 종료 지점.** T00~T06 완료, 브랜치 `feat/watchlist-digest`, 커밋 6개.
 
+## [T07] 브랜치 공개와 PR
+- 일시: 2026-08-25 00:26
+- 상태: 완료
+- 목적: 오늘 작업을 원격에 올리고 리뷰 가능한 형태로 남긴다.
+- 변경: 커밋 내용 변경 없음 (푸시와 PR 생성)
+- 검증: PR [#36](https://github.com/wodyd0103-byte/stock-signal-dashboard/pull/36) — 파일 24개, +1782/-267, 커밋 6개. CI **backend (pytest) pass 53s**, **frontend (format/lint/unit/build/e2e) pass 1m40s**.
+- 결정:
+  - 푸시 직전에 첫 커밋 제목이 `@ docs: ...`로 깨져 있는 것을 발견했다. PowerShell here-string(`-m @'...'@`)을 커밋 메시지로 넘기면서 `@`가 제목에 섞여 들어갔다. 아직 푸시 전이라 `8491788`에서 새 브랜치를 따 cherry-pick으로 재생성하고 첫 커밋만 메시지를 고쳤다. `git diff --stat` 로 재생성 전후 트리가 동일한 것을 확인한 뒤 브랜치를 옮겼다. 원본은 `backup/pre-msg-fix`에 로컬로 남아 있다.
+  - T05와 T06이 `git add -A` 때문에 한 커밋에 들어갔다. Task마다 커밋 규칙에 어긋나 `git reset --soft HEAD~1` 후 둘로 나눴다.
+  - 커밋 메시지는 여러 줄일 때 `git commit -F -`에 heredoc으로 넘긴다. `-m @'...'@` 는 쓰지 않는다.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
