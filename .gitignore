@@ -39,6 +39,8 @@ frontend/next-env.d.ts
 .tmp/
 backend/.tmp/
 backend/data/cache/
+# 일일 리포트 출력. 보유 종목과 평단가가 들어가므로 커밋하지 않는다.
+backend/data/digest/
 
 # Playwright
 frontend/playwright-report/

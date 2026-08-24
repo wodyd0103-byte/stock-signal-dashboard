@@ -98,3 +98,47 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
 - **작성 중 자체 발견 버그 1건**: 시장심리를 `getattr(row, "_sentiment", None)`으로 긁는 코드를 넣었는데 `Row`에 그런 필드가 없어 항상 `None`이었다. `analysis_service.market_sentiment_dict()`를 한 번 부르는 방식으로 교체했다 — 이미 `analyze()`가 캐시를 채워둬서 캐시 히트이고, 전 종목이 실패해도 헤더에 시장 상황은 남는다.
 - **모듈명 변경**: `collect.py`로 만들었다가 `collector.py`로 바꿨다. `tools/digest/__init__.py`가 함수 `collect`를 re-export하면서 동명의 서브모듈을 가려 `tools.digest.collect`가 함수로 해석됐고, 테스트가 `AttributeError: <function collect> has no attribute 'SessionLocal'`로 죽었다.
 - 다음: T05 render — 터미널 표 / 마크다운 / HTML 출력과 전일 대비 신호 변경 diff.
+
+## [T05] 스냅샷·비교·출력
+- 일시: 2026-08-25 00:07
+- 상태: 완료
+- 목적: 수집 결과를 사람이 읽는 형태로 만들고, 직전 실행 대비 신호 변화를 뽑는다.
+- 변경:
+  - `backend/tools/digest/store.py` (신규, 스냅샷 저장/로드/비교)
+  - `backend/tools/digest/render.py` (신규, 터미널/마크다운/HTML)
+  - `backend/tests/test_digest_render.py` (신규, 15 케이스)
+- 검증: `pytest tests/test_digest_render.py -q` → **15 passed**.
+- 결정:
+  - **"어제 파일"을 고정으로 찾지 않는다.** `load_previous()`는 오늘보다 앞선 스냅샷 중 가장 최근 것을 고른다. 주말이나 며칠 걸렀을 때 "어제"를 찾으면 비교가 통째로 사라진다. 마지막으로 돌린 날과 비교해야 변화가 이어진다.
+  - 비교 결과는 **바뀐 종목만** 남긴다. 전체를 다시 보여주면 변화가 묻힌다. 정렬은 상승 전환 → 신규 → 하락 전환.
+  - 손상된 스냅샷은 예외를 올리지 않고 `None`을 돌려준다. 어제 파일이 깨졌다고 오늘 리포트가 죽으면 안 된다.
+  - 터미널 정렬에 `unicodedata.east_asian_width`를 쓴다. `len()`으로 폭을 재면 한글 종목명에서 표가 어긋난다. 테스트가 ANSI를 걷어낸 표시 폭이 행마다 같은지 검사한다.
+  - HTML은 외부 리소스 없이 단독으로 열린다. `prefers-color-scheme`로 다크 모드까지 대응. 실패 메시지는 `html.escape` — 오류 문자열에 외부 출처(종목명·provider 응답)가 섞여 들어온다.
+- 다음: T06 CLI 진입점과 `digest.bat`.
+
+## [T06] CLI 진입점과 원클릭 실행
+- 일시: 2026-08-25 00:12
+- 상태: 완료
+- 목적: 실제로 돌려볼 수 있는 상태로 마무리한다.
+- 변경:
+  - `backend/tools/digest/__main__.py` (신규)
+  - `backend/tests/test_digest_cli.py` (신규, 7 케이스)
+  - `digest.bat` (신규)
+  - `README.md` (CLI 섹션, 저장소 구조)
+  - `.gitignore` (`backend/data/digest/`)
+- 검증:
+  - `pytest -q` → **168 passed** (33s). 누적 회귀 없음 (140 → 146 → 168).
+  - 실제 실행 2회. `DATABASE_URL`로 임시 DB를 물리고 005930(관심) + 000660(보유 3주 @150,000)을 넣어 네트워크 포함으로 돌렸다. 표·마크다운·HTML·스냅샷 4개 산출물 생성 확인.
+  - 비교 경로도 실제로 확인했다. 스냅샷의 신호를 `BUY`로 고쳐 전일 파일로 심어두고 재실행 → `신호 변화 ● SK하이닉스 (000660) BUY → HOLD`가 상단에 찍혔다.
+- 결정:
+  - 색상은 tty가 아니면 자동으로 뺀다(`--colour auto`). 파일로 리다이렉트하거나 파이프로 넘길 때 제어문자가 섞이면 못 읽는다. `NO_COLOR` 환경변수도 존중한다.
+  - Windows 콘솔은 `SetConsoleMode`로 ANSI를 켠다. 실패해도 색만 빠지고 동작은 같게 감쌌다.
+  - **전 종목이 실패하면 종료코드 1.** 작업 스케줄러에 걸었을 때 조용히 넘어가면 며칠째 안 도는 걸 모른다. 일부 실패는 0 — 나머지 결과는 여전히 쓸모 있다.
+  - 출력 디렉터리를 `.gitignore`에 넣었다. 보유 수량과 평단가가 들어가는 개인 정보다.
+- **오늘 작업 종료 지점.** T00~T06 완료, 브랜치 `feat/watchlist-digest`, 커밋 6개.
+
+## 남은 작업 (다음 세션)
+- **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
+- **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
+- **T09** 신호 변화 이력을 별도 테이블로. 지금은 JSON 스냅샷 비교라 "지난달에 몇 번 뒤집혔나"를 못 본다. `retrospective_service`가 먹을 수 있는 형태가 되면 리서치 탭과 연결된다.
+- **부채(T03에서 발견, 범위 밖)**: `scheduler_service`가 `market_router._buy_signals_payload`와 `surge_router.scan_surge`를 import한다. `market_router`는 `StockDataProvider()`를 자체 생성해 `analysis_service`와 인스턴스가 갈린다.
