@@ -113,7 +113,7 @@ class _FakeSurgePrediction:
 def client(monkeypatch, tmp_path):
     import app.database as database
     from app.main import app
-    from app.routers import market_router, stock_router, surge_router
+    from app.routers import market_router, surge_router
 
     engine = create_engine(
         f"sqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False}
@@ -162,21 +162,11 @@ def client(monkeypatch, tmp_path):
 
     # 분석 응답에 붙는 외부 조회(네이버 수급/뉴스/공시/업종/재무)는 전부 끈다.
     # 시장심리만 값을 돌려줘 배선이 살아있는지 볼 수 있게 남긴다.
-    # 실제 구현은 analysis_service 에 있고, stock_router 는 별칭을 재export 한다.
-    # market_router 처럼 별칭을 직접 import 하는 호출부가 남아 있어 양쪽 다 막는다.
     from app.services import analysis_service
 
     monkeypatch.setattr(analysis_service, "market_sentiment_dict", lambda: {"score": 55, "label": "중립"})
-    monkeypatch.setattr(stock_router, "_market_sentiment_dict", lambda: {"score": 55, "label": "중립"})
-    for service_name, alias in (
-        ("supply_demand_dict", "_supply_demand_dict"),
-        ("news_sentiment_dict", "_news_sentiment_dict"),
-        ("sector_dict", "_sector_dict"),
-        ("disclosure_dict", "_disclosure_dict"),
-        ("fundamental_dict", "_fundamental_dict"),
-    ):
-        monkeypatch.setattr(analysis_service, service_name, lambda ticker: None)
-        monkeypatch.setattr(stock_router, alias, lambda ticker: None)
+    for name in ("supply_demand_dict", "news_sentiment_dict", "sector_dict", "disclosure_dict", "fundamental_dict"):
+        monkeypatch.setattr(analysis_service, name, lambda ticker: None)
     monkeypatch.setattr(analysis_service._learned_service, "score", lambda enriched: None)
 
     import app.services.market_sentiment_service as sentiment_module
@@ -211,14 +201,14 @@ def forced_buy_signal(monkeypatch):
     데이터로는 켤 수 없다. 이 테스트들의 대상은 신호 엔진의 판정이 아니라
     기록·중복방지 배선이므로 신호를 고정한다.
     """
-    from app.routers import stock_router
+    from app.services import analysis_service
 
-    real_score = stock_router.signal_service.score
+    real_score = analysis_service.signal_service.score
 
     def forced(*args, **kwargs):
         return real_score(*args, **kwargs).model_copy(update={"signal": "BUY"})
 
-    monkeypatch.setattr(stock_router.signal_service, "score", forced)
+    monkeypatch.setattr(analysis_service.signal_service, "score", forced)
 
 
 def _csv_rows(response):

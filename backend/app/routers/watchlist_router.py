@@ -8,7 +8,14 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.watchlist import WatchlistItem
-from app.routers.stock_router import _load_enriched, _quote_from_frame, data_provider, prediction_service, risk_service, signal_service
+from app.services.analysis_service import (
+    data_provider,
+    load_enriched,
+    prediction_service,
+    quote_from_frame,
+    risk_service,
+    signal_service,
+)
 from app.schemas.watchlist import WatchlistCreate, WatchlistItemResponse, WatchlistSummary
 
 
@@ -21,8 +28,8 @@ def list_watchlist(db: Session = Depends(get_db)) -> list[WatchlistSummary]:
     summaries: list[WatchlistSummary] = []
     for item in items:
         try:
-            result, enriched = _load_enriched(item.ticker, "1y")
-            quote = _quote_from_frame(result, "1y", enriched)
+            result, enriched = load_enriched(item.ticker, "1y")
+            quote = quote_from_frame(result, "1y", enriched)
             risk = risk_service.analyze(result.ticker, "1y", enriched)
             prediction = prediction_service.predict(result.ticker, "1y", enriched)
             signal = signal_service.score(enriched, risk.risk_score, prediction)

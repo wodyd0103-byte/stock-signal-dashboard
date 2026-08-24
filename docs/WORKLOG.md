@@ -57,3 +57,23 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - `_price_points`, `_optional_float`은 응답 스키마(`PricePoint`) 전용이라 라우터에 남겼다.
   - conftest는 `analysis_service`와 `stock_router` 별칭 **양쪽**을 스텁한다. `market_router`가 함수 안에서 `from app.routers.stock_router import _fundamental_dict`로 별칭을 직접 집어가기 때문에 한쪽만 막으면 테스트가 실제 네트워크를 탄다.
 - 다음: T03 호출부 7곳을 `analysis_service` 직접 import로 이전하고 별칭 제거.
+
+## [T03] 호출부 7곳 이전 및 별칭 제거
+- 일시: 2026-08-25 00:14
+- 상태: 완료
+- 목적: `stock_router`를 공용 허브에서 다시 라우터로 되돌린다.
+- 변경:
+  - `backend/app/routers/analysis_http.py` (신규, HTTP 어댑터)
+  - `backend/app/routers/stock_router.py` (별칭 21개 + 로컬 래퍼 제거)
+  - `backend/app/routers/{export,watchlist,market,portfolio,ic,retrospective}_router.py`
+  - `backend/app/services/scheduler_service.py`
+  - `backend/tests/test_routers.py` (스텁 대상 정리)
+- 검증: `pytest -q` → **140 passed** (48s). `app.main` import 성공, OpenAPI 28 path 생성. AST 스캔으로 `app/services/*`가 `app.routers`를 import하는지 확인.
+- 결정:
+  - HTTP 매핑을 `stock_router`에 두면 다른 라우터가 또 stock_router를 import하게 된다. **`app/routers/analysis_http.py`로 분리**해서 `to_http_exception`, `load_enriched`, `analyze`를 제공한다. 이제 아무도 `stock_router`의 내부를 import하지 않는다 (`main.py`의 라우터 등록만 남음).
+  - 호출부를 **두 부류로 갈랐다.** 실패를 그대로 4xx/5xx로 올려야 하는 쪽(`stock_router` 전 엔드포인트, `export_stock_analysis`)은 `analysis_http`를, 실패를 응답 안에 담고 계속 가는 쪽(`list_watchlist`, `export_watchlist`의 행별 error 컬럼, `scheduler_service` 캐시 워밍)은 `analysis_service`를 직접 부른다. 후자는 원래 `HTTPException`을 `except Exception`으로 받아 문자열화하고 있었다 — 서비스 예외를 그대로 받는 게 맞다.
+- **동작 변화 1건 (의도됨)**: 관심종목 목록과 watchlist CSV의 `error` 필드에서 `"500: "` / `"502: "` 접두사가 사라진다. `str(HTTPException)`이 `f"{status_code}: {detail}"`을 돌려주던 것이 도메인 예외 메시지로 바뀌었기 때문. 응답 스키마와 상태코드는 불변이고, 해당 테스트는 error가 truthy인지만 본다. CSV/화면에는 오히려 읽기 좋아진다.
+- 남은 레이어링 부채 (이번 범위 밖, 기존 이슈):
+  - `scheduler_service`가 여전히 `market_router._buy_signals_payload`와 `surge_router.scan_surge`를 import한다. 캐시 워밍이 라우터 레벨 payload 빌더에 묶여 있어서인데, 별도 작업으로 다뤄야 한다.
+  - `market_router`는 `StockDataProvider()` 등 싱글턴을 자체 생성해 `analysis_service`와 인스턴스가 갈린다. 캐시가 이중으로 뜨지만 동작상 문제는 없어 그대로 뒀다.
+- 다음: T04 digest collect — 관심종목/보유종목 티커 수집 후 `analysis_service.analyze()` 병렬 실행.

@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Query
 
-from app.routers.stock_router import data_provider, indicator_service
+from app.services.analysis_service import data_provider, indicator_service
 from app.services.ic_service import ICService
 from app.services.universe_service import UniverseService
 
