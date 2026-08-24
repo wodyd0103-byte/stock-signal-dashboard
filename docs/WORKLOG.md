@@ -77,3 +77,24 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - `scheduler_service`가 여전히 `market_router._buy_signals_payload`와 `surge_router.scan_surge`를 import한다. 캐시 워밍이 라우터 레벨 payload 빌더에 묶여 있어서인데, 별도 작업으로 다뤄야 한다.
   - `market_router`는 `StockDataProvider()` 등 싱글턴을 자체 생성해 `analysis_service`와 인스턴스가 갈린다. 캐시가 이중으로 뜨지만 동작상 문제는 없어 그대로 뒀다.
 - 다음: T04 digest collect — 관심종목/보유종목 티커 수집 후 `analysis_service.analyze()` 병렬 실행.
+
+## [T04] digest 수집 레이어
+- 일시: 2026-08-25 00:03
+- 상태: 완료
+- 목적: 서버 없이 관심종목·보유종목을 분석해 자료구조로 만든다. 출력은 T05.
+- 변경:
+  - `backend/tools/__init__.py`, `backend/tools/digest/__init__.py` (신규)
+  - `backend/tools/digest/collector.py` (신규)
+  - `backend/tests/test_digest_collector.py` (신규, 6 케이스)
+- 검증:
+  - `pytest -q` → **146 passed** (51s). 신규 6건 포함, 기존 140건 회귀 없음.
+  - 실 DB `load_targets()` → 0건 (관심종목·보유종목 둘 다 비어 있음). 그래서 임시 DB에 005930(관심), 000660(보유 3주 @150,000)을 넣고 네트워크 포함 스모크 1회: **10.3초, rows=2, failures=0**. 시장심리 35(공포)까지 채워짐. pnl 계산도 보유 종목에만 붙는 것 확인.
+- 결정:
+  - **DB는 읽기만 한다.** digest는 앱과 같은 SQLite 파일을 열지만 아무것도 쓰지 않는다. `get_analysis`가 하는 회고 기록(`_retro_service.record`)은 라우터에 남겨뒀으므로 CLI 경로로는 실행되지 않는다 — 아침에 리포트를 뽑는 행위가 추천 이력을 오염시키면 안 된다.
+  - 병렬 처리는 `market_router._buy_signals_payload`의 패턴을 그대로 따랐다 (`wait(timeout=...)` → 완료분 수집 → 미완료분 `cancel()` 후 실패 처리 → `shutdown(wait=False, cancel_futures=True)`). 일부 종목이 죽어도 나머지는 살아남는다.
+  - 워커/타임아웃은 `core/config.py`의 `Settings`가 아니라 **툴 모듈에서 env로 읽는다** (`DIGEST_MAX_WORKERS`=4, `DIGEST_ITEM_TIMEOUT_SECONDS`=40). `Settings`는 서버 런타임 설정이라 CLI 전용 값을 섞지 않았다. `analyze()`는 외부 fetch 7종을 병렬로 타서 buy-signals의 경량 분석보다 무겁기 때문에 기본값도 더 넉넉하게 잡았다.
+  - 같은 티커가 관심종목과 보유 양쪽에 있으면 한 줄로 합치고 `sources`에 둘 다 남긴다. 두 번 분석하면 시간이 두 배다.
+  - 정렬은 신호 강도 → `final_buy_score` 내림차순 → 리스크 오름차순. 아침에 위에서부터 읽으면 되는 순서.
+- **작성 중 자체 발견 버그 1건**: 시장심리를 `getattr(row, "_sentiment", None)`으로 긁는 코드를 넣었는데 `Row`에 그런 필드가 없어 항상 `None`이었다. `analysis_service.market_sentiment_dict()`를 한 번 부르는 방식으로 교체했다 — 이미 `analyze()`가 캐시를 채워둬서 캐시 히트이고, 전 종목이 실패해도 헤더에 시장 상황은 남는다.
+- **모듈명 변경**: `collect.py`로 만들었다가 `collector.py`로 바꿨다. `tools/digest/__init__.py`가 함수 `collect`를 re-export하면서 동명의 서브모듈을 가려 `tools.digest.collect`가 함수로 해석됐고, 테스트가 `AttributeError: <function collect> has no attribute 'SessionLocal'`로 죽었다.
+- 다음: T05 render — 터미널 표 / 마크다운 / HTML 출력과 전일 대비 신호 변경 diff.
