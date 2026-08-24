@@ -54,6 +54,41 @@ npm run dev
 - 앱: `http://localhost:3000`
 - API 문서: `http://localhost:8000/docs`
 
+## 관심종목 일일 리포트 (CLI)
+
+서버와 프론트엔드를 띄우지 않고 관심종목·보유 종목만 분석해 한 장으로 뽑는 도구입니다.
+`digest.bat`을 더블클릭하면 분석 후 HTML 리포트가 브라우저로 열립니다.
+
+```powershell
+cd backend
+.venv\Scripts\python.exe -m tools.digest --md --html --open
+```
+
+| 옵션 | 설명 |
+| --- | --- |
+| `--source` | `watchlist`, `holdings` 중 콤마로. 기본은 둘 다 |
+| `--period` | `1mo` \| `3mo` \| `6mo` \| `1y` \| `3y`. 기본 `1y` |
+| `--md`, `--html` | 마크다운/HTML 파일로 저장 |
+| `--open` | 저장한 HTML을 브라우저로 열기 |
+| `--out` | 출력 디렉터리. 기본 `backend/data/digest/` |
+| `--no-save` | 스냅샷을 남기지 않음 (다음 실행의 비교 대상이 되지 않습니다) |
+
+실행할 때마다 `backend/data/digest/<날짜>.json` 스냅샷을 남기고, 다음 실행에서 **직전 스냅샷과
+신호를 비교해 바뀐 종목만** 상단에 따로 보여줍니다. "어제"를 고정으로 찾지 않고 마지막으로 돌린
+날과 비교하므로 주말이나 며칠을 걸러도 변화가 이어집니다.
+
+DB는 앱과 같은 SQLite 파일을 **읽기만** 합니다. 분석 엔드포인트가 하는 추천 이력 기록은 CLI
+경로에서 실행되지 않으므로, 리포트를 여러 번 뽑아도 회고 데이터가 오염되지 않습니다.
+
+출력 디렉터리에는 보유 수량과 평단가가 들어가기 때문에 `.gitignore`에 포함돼 있습니다.
+
+동시 분석 수와 종목당 제한 시간은 환경변수로 조정합니다.
+
+```env
+DIGEST_MAX_WORKERS=4
+DIGEST_ITEM_TIMEOUT_SECONDS=40
+```
+
 ## 화면 구성
 
 단일 페이지 애플리케이션이며, 상단 탭으로 영역을 전환합니다.
@@ -223,6 +258,7 @@ backend/    FastAPI 앱 (routers, services, models, schemas, migrations, tests)
 frontend/   Next.js 앱 (app, components, lib)
 docs/       설계 노트와 스크린샷
 start.ps1   원클릭 실행 스크립트
+digest.bat  관심종목 일일 리포트 (backend/tools/digest)
 ```
 
 ## 설계 노트

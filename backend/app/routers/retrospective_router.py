@@ -14,7 +14,7 @@ _service = RetrospectiveService()
 
 
 def _price_fn(ticker: str) -> float | None:
-    from app.routers.stock_router import data_provider
+    from app.services.analysis_service import data_provider
     try:
         res = data_provider.fetch_ohlcv(ticker, "1mo")
         if res.data is not None and not res.data.empty:

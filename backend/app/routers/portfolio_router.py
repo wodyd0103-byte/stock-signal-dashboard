@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.holding import Holding
-from app.routers.stock_router import (
-    _build_signal,
+from app.services.analysis_service import (
+    build_signal,
     data_provider,
     indicator_service,
     risk_service,
@@ -24,7 +24,7 @@ _service = PortfolioService(
     data_provider=data_provider,
     indicator_service=indicator_service,
     risk_service=risk_service,
-    build_signal_fn=_build_signal,  # 경량 신호 (sentiment/news 인자 미전달 → 기술+ML+regime)
+    build_signal_fn=build_signal,  # 경량 신호 (sentiment/news 인자 미전달 → 기술+ML+regime)
 )
 
 

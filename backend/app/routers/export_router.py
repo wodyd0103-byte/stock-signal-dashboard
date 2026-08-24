@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.watchlist import WatchlistItem
 from app.routers.market_router import _buy_signals_payload
-from app.routers.stock_router import _load_enriched, _quote_from_frame, prediction_service, risk_service, signal_service
+from app.routers import analysis_http
+from app.services.analysis_service import load_enriched, prediction_service, quote_from_frame, risk_service, signal_service
 
 router = APIRouter(prefix="/export", tags=["export"])
 
@@ -125,8 +126,8 @@ def export_watchlist(db: Session = Depends(get_db)) -> StreamingResponse:
     rows = []
     for it in items:
         try:
-            result, enriched = _load_enriched(it.ticker, "1y")
-            quote = _quote_from_frame(result, "1y", enriched)
+            result, enriched = load_enriched(it.ticker, "1y")
+            quote = quote_from_frame(result, "1y", enriched)
             risk = risk_service.analyze(result.ticker, "1y", enriched)
             prediction = prediction_service.predict(result.ticker, "1y", enriched)
             signal = signal_service.score(enriched, risk.risk_score, prediction)
@@ -158,7 +159,7 @@ def export_watchlist(db: Session = Depends(get_db)) -> StreamingResponse:
 @router.get("/stock/{ticker}.csv")
 def export_stock_analysis(ticker: str, period: str = Query("1y")) -> StreamingResponse:
     """단일 종목의 가격 + 지표 + 신호 시계열을 CSV로."""
-    result, enriched = _load_enriched(ticker, period)
+    result, enriched = analysis_http.load_enriched(ticker, period)
     if enriched.empty:
         return _to_csv_stream(["error"], [["빈 데이터"]])
 

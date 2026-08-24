@@ -379,7 +379,7 @@ def _now_kst() -> datetime:
 
 def _compare_one(ticker: str) -> dict[str, Any]:
     """단일 종목 비교용 경량 지표 (병렬 워커). 실패 시 error 필드."""
-    from app.routers.stock_router import _build_signal, _fundamental_dict
+    from app.services.analysis_service import build_signal, fundamental_dict
     try:
         result = data_provider.fetch_ohlcv(ticker, "1y")
         enriched = indicator_service.enrich(result.data)
@@ -400,8 +400,8 @@ def _compare_one(ticker: str) -> dict[str, Any]:
         vol = round(float(daily.tail(60).std()) * (252 ** 0.5) * 100, 1) if len(daily) >= 20 else None
 
         risk = risk_service.analyze(result.ticker, "1y", enriched)
-        fundamental = _fundamental_dict(result.ticker) if result.market == "KR" else None
-        sig = _build_signal(result, "1y", enriched, risk.risk_score, fundamental=fundamental)
+        fundamental = fundamental_dict(result.ticker) if result.market == "KR" else None
+        sig = build_signal(result, "1y", enriched, risk.risk_score, fundamental=fundamental)
 
         return {
             "ticker": result.ticker,

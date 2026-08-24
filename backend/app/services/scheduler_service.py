@@ -36,7 +36,7 @@ def _refresh_analysis_cache() -> None:
     from app.database import SessionLocal
     from app.models.watchlist import WatchlistItem
     from app.routers.market_router import _buy_signals_payload
-    from app.routers.stock_router import _load_enriched, prediction_service, risk_service, signal_service
+    from app.services.analysis_service import load_enriched, prediction_service, risk_service, signal_service
 
     start = datetime.now()
     logger.info("[scheduler] 분석 갱신 시작")
@@ -84,7 +84,7 @@ def _refresh_analysis_cache() -> None:
         items = db.query(WatchlistItem).all()
         for it in items:
             try:
-                _, enriched = _load_enriched(it.ticker, "1y")
+                _, enriched = load_enriched(it.ticker, "1y")
                 risk = risk_service.analyze(it.ticker, "1y", enriched)
                 pred = prediction_service.predict(it.ticker, "1y", enriched)
                 signal_service.score(enriched, risk.risk_score, pred)
@@ -97,7 +97,7 @@ def _refresh_analysis_cache() -> None:
     # 3. 회고 채점 (horizon 경과 추천 평가)
     db2 = SessionLocal()
     try:
-        from app.routers.stock_router import data_provider
+        from app.services.analysis_service import data_provider
         from app.services.retrospective_service import RetrospectiveService
 
         def _price(ticker: str):
