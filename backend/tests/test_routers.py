@@ -162,10 +162,22 @@ def client(monkeypatch, tmp_path):
 
     # 분석 응답에 붙는 외부 조회(네이버 수급/뉴스/공시/업종/재무)는 전부 끈다.
     # 시장심리만 값을 돌려줘 배선이 살아있는지 볼 수 있게 남긴다.
+    # 실제 구현은 analysis_service 에 있고, stock_router 는 별칭을 재export 한다.
+    # market_router 처럼 별칭을 직접 import 하는 호출부가 남아 있어 양쪽 다 막는다.
+    from app.services import analysis_service
+
+    monkeypatch.setattr(analysis_service, "market_sentiment_dict", lambda: {"score": 55, "label": "중립"})
     monkeypatch.setattr(stock_router, "_market_sentiment_dict", lambda: {"score": 55, "label": "중립"})
-    for name in ("_supply_demand_dict", "_news_sentiment_dict", "_sector_dict", "_disclosure_dict", "_fundamental_dict"):
-        monkeypatch.setattr(stock_router, name, lambda ticker: None)
-    monkeypatch.setattr(stock_router._learned_service, "score", lambda enriched: None)
+    for service_name, alias in (
+        ("supply_demand_dict", "_supply_demand_dict"),
+        ("news_sentiment_dict", "_news_sentiment_dict"),
+        ("sector_dict", "_sector_dict"),
+        ("disclosure_dict", "_disclosure_dict"),
+        ("fundamental_dict", "_fundamental_dict"),
+    ):
+        monkeypatch.setattr(analysis_service, service_name, lambda ticker: None)
+        monkeypatch.setattr(stock_router, alias, lambda ticker: None)
+    monkeypatch.setattr(analysis_service._learned_service, "score", lambda enriched: None)
 
     import app.services.market_sentiment_service as sentiment_module
 
