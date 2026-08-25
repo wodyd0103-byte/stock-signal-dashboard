@@ -154,3 +154,167 @@ def test_non_windows_uses_the_console(monkeypatch, capsys):
 
     assert result.backend == "console"
     assert "Windows가 아닙니다" in capsys.readouterr().err
+
+
+# --- 중복 차단 -----------------------------------------------------------
+
+
+def test_the_same_change_set_is_not_sent_twice(fake_powershell, tmp_path):
+    fake_powershell()
+    changes = [_change()]
+
+    first = notify.notify(changes, state_dir=tmp_path)
+    second = notify.notify(changes, state_dir=tmp_path)
+
+    assert first.sent is True
+    assert (second.sent, second.backend) == (False, "skipped")
+    assert "이미 알림" in second.detail
+
+
+def test_a_different_change_set_still_goes_out(fake_powershell, tmp_path):
+    fake_powershell()
+
+    notify.notify([_change()], state_dir=tmp_path)
+    second = notify.notify([_change("000660", "SK하이닉스", "BUY", "SELL", "down")], state_dir=tmp_path)
+
+    assert second.sent is True
+
+
+def test_renotify_is_possible_by_dropping_the_state_dir(fake_powershell, tmp_path):
+    fake_powershell()
+    changes = [_change()]
+
+    notify.notify(changes, state_dir=tmp_path)
+
+    # CLI 의 --renotify 는 state_dir 을 주지 않는 것으로 구현된다.
+    assert notify.notify(changes, state_dir=None).sent is True
+
+
+def test_a_corrupt_state_file_does_not_block_the_alert(fake_powershell, tmp_path):
+    fake_powershell()
+    (tmp_path / ".notified.json").write_text("{ broken", encoding="utf-8")
+
+    # 못 보내는 쪽이 더 나쁘다.
+    assert notify.notify([_change()], state_dir=tmp_path).sent is True
+
+
+def test_a_failed_send_is_not_remembered(fake_powershell, tmp_path):
+    fake_powershell(returncode=1, stderr="실패")
+
+    notify.notify([_change()], backend="toast", state_dir=tmp_path)
+
+    assert not (tmp_path / ".notified.json").exists()
+
+
+def test_fingerprint_ignores_order(fake_powershell):
+    a = _change("005930", "삼성전자")
+    b = _change("000660", "SK하이닉스", "BUY", "SELL", "down")
+
+    assert notify.fingerprint([a, b]) == notify.fingerprint([b, a])
+
+
+# --- 메일 ---------------------------------------------------------------
+
+
+@pytest.fixture
+def smtp_env(monkeypatch):
+    for key, value in {
+        "DIGEST_SMTP_HOST": "smtp.example.com",
+        "DIGEST_SMTP_PORT": "587",
+        "DIGEST_SMTP_USER": "sender@example.com",
+        "DIGEST_SMTP_PASSWORD": "app-password",
+        "DIGEST_MAIL_TO": "me@example.com",
+    }.items():
+        monkeypatch.setenv(key, value)
+
+
+@pytest.fixture
+def fake_smtp(monkeypatch):
+    """smtplib.SMTP 를 가로챈다. 실제 메일은 나가지 않는다."""
+    sent: list[object] = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout=None):
+            sent.append(("connect", host, port))
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def starttls(self):
+            sent.append(("starttls",))
+
+        def login(self, user, password):
+            sent.append(("login", user, password))
+
+        def send_message(self, message):
+            sent.append(("send", message))
+
+    monkeypatch.setattr(notify.smtplib, "SMTP", FakeSMTP)
+    return sent
+
+
+def test_mail_is_skipped_without_configuration(monkeypatch, tmp_path):
+    for key in ("DIGEST_SMTP_HOST", "DIGEST_SMTP_USER", "DIGEST_SMTP_PASSWORD", "DIGEST_MAIL_TO"):
+        monkeypatch.delenv(key, raising=False)
+
+    result = notify.notify([_change()], backend="email", state_dir=tmp_path)
+
+    assert result.sent is False
+    assert "SMTP 설정이 없습니다" in result.detail
+    # 못 보냈으므로 기억하지 않는다 — 설정을 채우면 그 변화로 알림이 온다.
+    assert not (tmp_path / ".notified.json").exists()
+
+
+def test_mail_goes_out_when_configured(smtp_env, fake_smtp, tmp_path):
+    result = notify.notify([_change()], backend="email", state_dir=tmp_path)
+
+    assert (result.sent, result.backend) == (True, "email")
+    kinds = [entry[0] for entry in fake_smtp]
+    assert kinds == ["connect", "starttls", "login", "send"]
+
+    message = fake_smtp[-1][1]
+    assert message["To"] == "me@example.com"
+    assert "신호 변화 1건" in message["Subject"]
+    assert "삼성전자  HOLD → BUY" in message.get_content()
+    assert "같은 변화로는 다시 오지 않습니다" in message.get_content()
+
+
+def test_mail_skips_tls_when_told_to(smtp_env, fake_smtp, monkeypatch, tmp_path):
+    monkeypatch.setenv("DIGEST_SMTP_TLS", "false")
+
+    notify.notify([_change()], backend="email", state_dir=tmp_path)
+
+    assert [entry[0] for entry in fake_smtp] == ["connect", "login", "send"]
+
+
+def test_a_broken_smtp_server_does_not_raise(smtp_env, monkeypatch, tmp_path):
+    def explode(*args, **kwargs):
+        raise OSError("연결 거부")
+
+    monkeypatch.setattr(notify.smtplib, "SMTP", explode)
+
+    result = notify.notify([_change()], backend="email", state_dir=tmp_path)
+
+    assert result.sent is False
+    assert "메일 발송 실패" in result.detail
+
+
+def test_all_sends_both_channels(smtp_env, fake_smtp, fake_powershell, tmp_path):
+    calls = fake_powershell()
+
+    result = notify.notify([_change()], backend="all", state_dir=tmp_path)
+
+    assert (result.sent, result.backend) == (True, "toast+email")
+    assert len(calls) == 1
+    assert [entry[0] for entry in fake_smtp][-1] == "send"
+
+
+def test_all_survives_one_channel_failing(smtp_env, fake_smtp, fake_powershell, tmp_path):
+    fake_powershell(returncode=1, stderr="토스트 실패")
+
+    result = notify.notify([_change()], backend="all", state_dir=tmp_path)
+
+    assert (result.sent, result.backend) == (True, "email")

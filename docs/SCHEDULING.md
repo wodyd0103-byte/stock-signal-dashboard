@@ -41,8 +41,11 @@ schtasks /Run /TN "QuantInsight Digest"
 ```
 
 결과는 `backend/data/digest/`에 그날 날짜로 `.md`, `.html`, `.json`이 생겼는지로 확인합니다.
-신호가 바뀐 종목이 있으면 토스트 알림이 뜹니다. 바뀐 게 없으면 알림은 오지 않습니다 —
-정상 동작입니다.
+신호가 바뀐 종목이 있으면 알림이 나갑니다. 바뀐 게 없으면 알림은 오지 않습니다 — 정상 동작입니다.
+
+알림이 시끄러우면 `digest-scheduled.bat`의 `--notify` 를 빼세요. 리포트 파일은 그대로 쌓이고
+알림만 멈춥니다. 같은 변화로 두 번 알림이 오는 일은 없습니다 — 보낸 내용의 지문을
+`backend/data/digest/.notified.json`에 남겨 두고 비교합니다.
 
 ## 실패 확인
 
