@@ -29,5 +29,6 @@ def init_db() -> None:
     from app.models.watchlist import WatchlistItem  # noqa: F401
     from app.models.recommendation import Recommendation  # noqa: F401
     from app.models.holding import Holding  # noqa: F401
+    from app.models.signal_change import SignalChange  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

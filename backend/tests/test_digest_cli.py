@@ -29,7 +29,24 @@ def _digest(rows=None, failures=None) -> Digest:
 
 
 @pytest.fixture
-def stub_collect(monkeypatch):
+def stub_collect(monkeypatch, tmp_path):
+    """분석을 대역으로 막고, 이력 기록도 임시 DB로 돌린다.
+
+    SessionLocal 을 패치하지 않으면 CLI 가 실제 앱 DB 에 이력을 쓴다.
+    """
+    import app.database as database
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    # 출력 디렉터리(tmp_path)를 그대로 쓰면 산출물 목록에 DB 파일이 섞인다.
+    db_dir = tmp_path / "_db"
+    db_dir.mkdir()
+    engine = create_engine(
+        f"sqlite:///{db_dir / 'cli.db'}", connect_args={"check_same_thread": False}
+    )
+    database.Base.metadata.create_all(bind=engine)
+    monkeypatch.setattr(cli, "SessionLocal", sessionmaker(bind=engine))
+
     def _install(digest: Digest):
         monkeypatch.setattr(cli.collector, "collect", lambda **kwargs: digest)
         return digest
@@ -49,7 +66,7 @@ def test_run_writes_markdown_html_and_a_snapshot(stub_collect, tmp_path, capsys)
     code = cli.main(["--md", "--html", "--out", str(tmp_path)])
 
     assert code == 0
-    names = sorted(p.name for p in tmp_path.iterdir())
+    names = sorted(p.name for p in tmp_path.iterdir() if p.is_file())
     assert names == ["2026-08-25.html", "2026-08-25.json", "2026-08-25.md"]
     assert "삼성전자" in capsys.readouterr().out
 
@@ -78,6 +95,16 @@ def test_second_run_compares_against_the_first(stub_collect, tmp_path, capsys):
     out = capsys.readouterr().out
     assert "신호 변화" in out
     assert "BUY → HOLD" in out
+
+    # 변화는 이력 테이블에도 남아야 한다. 스냅샷을 지워도 이쪽은 남는다.
+    from app.models.signal_change import SignalChange
+
+    session = cli.SessionLocal()
+    try:
+        stored = session.query(SignalChange).one()
+        assert (stored.ticker, stored.previous_signal, stored.current_signal) == ("005930", "BUY", "HOLD")
+    finally:
+        session.close()
 
 
 def test_colour_is_stripped_when_asked(stub_collect, tmp_path, capsys):

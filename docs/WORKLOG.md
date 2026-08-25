@@ -163,6 +163,30 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - 등록 로직은 `registry.py`에 Session을 받는 순수 함수로 두고 CLI는 얇게. 테스트가 CLI를 거치지 않고도 로직을 부를 수 있다.
 - 다음: T09 신호 변화 이력 테이블.
 
+## [T09] 신호 변화 이력 테이블
+- 일시: 2026-08-25 01:05
+- 상태: 완료
+- 목적: "이 종목이 최근 몇 번 뒤집혔나"에 답할 수 있게 한다. JSON 스냅샷은 직전 대비만 답한다.
+- 변경:
+  - `backend/app/models/signal_change.py` (신규)
+  - `backend/migrations/versions/0004_signal_changes.py` (신규)
+  - `backend/app/database.py` (`init_db`에 모델 등록)
+  - `backend/tools/digest/history.py` (신규), `backend/tools/digest/__main__.py` (기록 배선)
+  - `backend/tests/test_digest_history.py` (신규, 7 케이스), `backend/tests/test_digest_cli.py` (DB 격리 + 이력 검증)
+- 검증:
+  - `pytest -q` → **188 passed** (79s). 168 → 188 (+13 T08, +7 T09).
+  - 실 DB 마이그레이션 적용. 적용 전 `quant_app.db`를 스크래치패드에 백업(`quant_app.db.bak-20260825-220240`).
+  - `alembic downgrade -1` → `upgrade head` 왕복 확인. 최종 리비전 `0004_signal_changes`, 인덱스 3개 생성 확인.
+- **T04 결정 일부 변경**: T04에서 "digest는 DB를 읽기만 한다"고 정했다. 그 규칙의 목적은 **추천 이력(회고 데이터) 오염 방지**였고 그건 그대로다 — digest는 지금도 `recommendations`를 건드리지 않는다. `signal_changes`는 digest가 스스로 만드는 자기 기록이라 성격이 다르다고 판단해 쓰기를 허용했다. `--no-save`를 주면 스냅샷과 함께 이력 기록도 건너뛴다.
+- 결정:
+  - **같은 날 같은 전환은 한 번만 적재한다.** 하루에 digest를 두 번 돌린다고 이력이 부풀면 "몇 번 뒤집혔나"가 실행 횟수를 세는 지표가 된다.
+  - 변화가 있는데 그 종목이 이번 실행에서 실패해 `rows`에 없을 수 있다. 그 경우 가격·점수를 `None`으로 두고 변화 자체는 남긴다.
+  - `flip_counts()`를 같이 넣었다. 자주 뒤집히는 종목일수록 신호를 덜 믿어야 한다는 판단 재료이고, 나중에 `retrospective_service`가 읽을 자리다.
+- **잡은 버그 2건**:
+  - 마이그레이션이 `index ix_signal_changes_id already exists`로 죽었다. 컬럼 정의의 `primary_key=True, index=True`가 이미 인덱스를 만드는데 `op.create_index`로 또 만들었다. 테이블만 생기고 리비전은 0003에 멈춘 반쯤 적용된 상태가 됐다. 빈 테이블(0행)임을 확인하고 drop 후 재적용했다.
+  - `test_digest_cli.py`가 `SessionLocal`을 패치하지 않아 **테스트가 실제 앱 DB에 접근**했다. 임시 DB로 격리했다. 하위 디렉터리에 두지 않으면 산출물 목록 검사에 DB 파일이 섞인다.
+- 다음: T10 변화가 있을 때만 알림.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
