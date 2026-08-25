@@ -35,7 +35,7 @@ def _refresh_analysis_cache() -> None:
     """매수 신호 + 관심종목 분석을 백그라운드에서 미리 계산."""
     from app.database import SessionLocal
     from app.models.watchlist import WatchlistItem
-    from app.routers.market_router import _buy_signals_payload
+    from app.services.scan_service import buy_signals_payload
     from app.services.analysis_service import load_enriched, prediction_service, risk_service, signal_service
 
     start = datetime.now()
@@ -51,14 +51,14 @@ def _refresh_analysis_cache() -> None:
 
     # 1. 매수 신호 캐시 워밍 (all + 발굴탭이 쓰는 KR 둘 다)
     try:
-        result = _buy_signals_payload(
+        result = buy_signals_payload(
             market="all", min_signal="WEAK_BUY",
             kr_limit=100, us_limit=100, limit=100,
             include_sample=False, source="auto",
             sort_by="signal", force_refresh=True,
         )
         # 발굴 레일과 동일 파라미터 (market=KR, limit=30) → 첫 로드 즉시
-        _buy_signals_payload(
+        buy_signals_payload(
             market="KR", min_signal="WEAK_BUY",
             kr_limit=100, us_limit=100, limit=30,
             include_sample=False, source="auto",
@@ -70,10 +70,10 @@ def _refresh_analysis_cache() -> None:
 
     # 1-b. 급등 탐색 캐시 워밍 (발굴 레일 KR 파라미터)
     try:
-        from app.routers.surge_router import scan_surge
-        scan_surge(market="KR", kr_limit=60, us_limit=0, horizon_days=10,
-                   upper_pct=10.0, lower_pct=5.0, limit=30,
-                   min_probability=0.2, force_refresh=True)
+        from app.services import surge_scan_service
+        surge_scan_service.scan(market="KR", kr_limit=60, us_limit=0, horizon_days=10,
+                                upper_pct=10.0, lower_pct=5.0, limit=30,
+                                min_probability=0.2, force_refresh=True)
         logger.info("[scheduler] 급등 탐색 갱신")
     except Exception as exc:
         logger.warning(f"[scheduler] 급등 탐색 갱신 실패: {exc}")

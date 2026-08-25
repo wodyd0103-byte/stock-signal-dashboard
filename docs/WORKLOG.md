@@ -226,6 +226,44 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
 - **내가 낸 사고 1건**: 위 규칙이 이미 있는 줄 모르고 `.gitattributes`를 **새로 쓰면서 기존 내용을 덮어썼다.** 원본에 있던 `* text=auto eol=lf`가 사라졌는데, 이건 Windows 체크아웃에서 워킹트리가 CRLF가 되어 `npm run format:check`가 로컬에서만 깨지는 것을 막는 규칙이다. `git show HEAD~1:.gitattributes`로 원복했다. 파일을 새로 만들기 전에 존재 여부를 먼저 확인해야 했다.
 - 다음: T12 문서 정리 후 PR.
 
+## [T12] 유니버스 스캔을 서비스로 추출
+- 일시: 2026-08-25 02:15
+- 상태: 완료
+- 목적: `scheduler_service`가 라우터를 import하지 않게 한다. 캐시 워밍이 라우터 레벨 payload 빌더에 묶여 있었다.
+- 변경:
+  - `backend/app/services/scan_service.py` (신규, 338줄)
+  - `backend/app/routers/market_router.py` (440줄 → **129줄**)
+  - `backend/app/routers/export_router.py`, `backend/app/services/scheduler_service.py` (호출부 이전)
+  - `backend/tests/test_routers.py` (캐시 초기화 대상 이전, 낡은 주석 수정)
+- 검증: `pytest -q` → **201 passed** (58s). 회귀 없음. AST 스캔으로 `app/services/*`의 라우터 import 확인 → `scheduler_service` → `surge_router` 하나만 남음(T13 대상).
+- 결정:
+  - **싱글턴을 새로 만들지 않고 `analysis_service`의 것을 가져다 썼다.** `market_router`는 `StockDataProvider` 등 10개를 자체 생성해 `analysis_service`와 인스턴스가 갈려 있었고, provider 캐시가 두 벌로 떴다. 추출하면서 공유로 바꿨으니 원래 T13에 있던 "싱글턴 통합"의 절반이 여기서 끝났다. `StockDataProvider()` 생성 위치는 4곳 → **2곳**(`analysis_service`, `surge_router`)으로 줄었다.
+  - 중복 정의였던 `_return_pct`, `_liquidity_score`는 `analysis_service`의 것으로 통일했다. `_liquidity_score`는 빈 DataFrame일 때만 결과가 달랐는데(`analysis_service`는 0.0, `market_router`는 70.0), 스캔 경로는 그 앞에서 `len(enriched) < 2`로 걸러내므로 도달 불가능한 차이다.
+  - `prediction_service = PredictionService()`는 `market_router`에서 만들기만 하고 아무도 쓰지 않는 죽은 코드였다. 지웠다.
+  - 캐시 초기화용 `clear_caches()`를 서비스에 뒀다. 테스트가 모듈 내부 dict를 직접 만지던 것을 함수 하나로 바꿨다.
+  - `compare` 엔드포인트는 라우터에 남겼다. 유니버스 스캔이 아니라 별개 기능이고, 필요한 헬퍼는 `analysis_service`에서 가져온다.
+- 다음: T13 `surge_router.scan_surge` 추출 — 이게 끝나야 서비스가 라우터를 아는 곳이 하나도 없다.
+
+## [T13] 급등 스캔을 서비스로 추출
+- 일시: 2026-08-25 02:34
+- 상태: 완료
+- 목적: `scheduler_service`의 마지막 라우터 의존을 끊는다.
+- 변경:
+  - `backend/app/services/surge_scan_service.py` (신규)
+  - `backend/app/routers/surge_router.py` (200줄 → **66줄**)
+  - `backend/app/services/scheduler_service.py`, `backend/tests/test_routers.py` (호출부·캐시 초기화 이전)
+- 검증:
+  - `pytest -q` → **201 passed** (60s). 회귀 없음.
+  - AST 스캔: `app/services/*` → `app.routers` import **0건**. 목표 달성.
+  - `StockDataProvider()` 생성 위치 **1곳**(`analysis_service`). 시작 시점엔 4곳이었다.
+  - `app.main` import 성공, 라우트 34개 · OpenAPI 28 path — 추출 전과 동일.
+- 결정:
+  - 스캔 로직이 **엔드포인트 함수 본문에 통째로 들어 있었다.** `Query(...)` 기본값이 곧 함수 시그니처라 스케줄러가 라우터 함수를 직접 부르는 구조였다. 서비스의 `scan()`은 같은 인자 이름을 평범한 기본값으로 받고, `Query` 제약(ge/le)은 라우터에 남겼다 — 범위 검증은 HTTP 입력에 필요한 것이지 내부 호출자에게 강요할 것이 아니다.
+  - 서비스가 `SurgeItem` 스키마로 항목을 정규화해 dict를 돌려주고, 라우터가 `SurgeScanResponse`로 감싼다. `analysis_service`가 `AnalysisBundle`을 돌려주고 라우터가 응답 스키마를 만드는 것과 같은 모양.
+  - 단일 종목 예측도 `predict_one()`으로 뺐다. 라우터가 `RuntimeError`를 400으로 옮긴다.
+  - 유니버스 싱글턴은 `scan_service`의 것을 공유한다. 따로 만들면 유니버스 캐시가 두 벌이 된다.
+- **정리 결과 (T02부터 T13까지)**: 시작할 때 `stock_router`는 다른 모듈 7곳이 private 헬퍼를 가져다 쓰는 사실상의 서비스 허브였고, 라우터 3개가 provider 싱글턴을 각자 만들고 있었다. 지금은 서비스가 라우터를 모르고, provider는 한 인스턴스이며, `market_router` 440→129줄 · `surge_router` 200→66줄로 줄었다.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
