@@ -128,3 +128,52 @@ def test_snapshot_keeps_the_rows_for_the_next_comparison(stub_collect, tmp_path)
 
     payload = json.loads((tmp_path / "2026-08-25.json").read_text(encoding="utf-8"))
     assert payload["rows"][0]["signal"] == "BUY"
+
+
+def test_the_flip_count_includes_todays_change(stub_collect, tmp_path, capsys):
+    """이력 적재가 렌더링보다 먼저 일어나야 오늘 전환이 숫자에 들어간다."""
+    from app.models.signal_change import SignalChange
+    from datetime import datetime, timedelta
+
+    stub_collect(_digest())
+    cli.main(["--out", str(tmp_path)])
+    capsys.readouterr()
+
+    # 지난달에 두 번 더 뒤집힌 이력을 심는다.
+    session = cli.SessionLocal()
+    try:
+        now = datetime.utcnow()
+        session.add_all([
+            SignalChange(ticker="005930", current_signal="HOLD", direction="down",
+                         source="digest", recorded_at=now - timedelta(days=5)),
+            SignalChange(ticker="005930", current_signal="BUY", direction="up",
+                         source="digest", recorded_at=now - timedelta(days=9)),
+        ])
+        session.commit()
+    finally:
+        session.close()
+
+    (tmp_path / "2026-08-25.json").rename(tmp_path / "2026-08-24.json")
+    downgraded = _digest()
+    downgraded.rows[0].signal = "HOLD"
+    stub_collect(downgraded)
+
+    cli.main(["--colour", "never", "--out", str(tmp_path)])
+
+    out = capsys.readouterr().out
+    assert "BUY → HOLD" in out
+    # 심어둔 2건 + 오늘 1건
+    assert "30일 3회" in out
+
+
+def test_no_save_leaves_the_history_alone(stub_collect, tmp_path, capsys):
+    from app.models.signal_change import SignalChange
+
+    stub_collect(_digest())
+    cli.main(["--no-save", "--out", str(tmp_path)])
+
+    session = cli.SessionLocal()
+    try:
+        assert session.query(SignalChange).count() == 0
+    finally:
+        session.close()

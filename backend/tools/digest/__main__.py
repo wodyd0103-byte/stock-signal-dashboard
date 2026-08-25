@@ -94,35 +94,40 @@ def main(argv: list[str] | None = None) -> int:
     changes = store.diff_signals(digest, previous)
     previous_at = store.previous_generated_at(previous)
 
-    text = render.render_terminal(digest, changes, previous_at)
-    print(text if _use_colour(args.colour) else _ANSI.sub("", text))
-
     written: list[Path] = []
     stamp = digest.generated_at.date().isoformat()
+    inserted = 0
+
+    # 이력을 먼저 적재하고 횟수를 읽는다. 순서가 반대면 오늘의 전환이 빠진 숫자가 나온다.
+    if not args.no_save:
+        written.append(store.save_snapshot(digest, args.out))
+
+    db = SessionLocal()
+    try:
+        if not args.no_save:
+            inserted = history.record(db, digest, changes)
+        flips = history.flip_counts(db, days=render.HISTORY_WINDOW_DAYS)
+    finally:
+        db.close()
+
+    text = render.render_terminal(digest, changes, previous_at, flips)
+    print(text if _use_colour(args.colour) else _ANSI.sub("", text))
 
     if args.md:
         path = args.out / f"{stamp}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(render.render_markdown(digest, changes, previous_at), encoding="utf-8")
+        path.write_text(render.render_markdown(digest, changes, previous_at, flips), encoding="utf-8")
         written.append(path)
 
     html_path: Path | None = None
     if args.html:
         html_path = args.out / f"{stamp}.html"
         html_path.parent.mkdir(parents=True, exist_ok=True)
-        html_path.write_text(render.render_html(digest, changes, previous_at), encoding="utf-8")
+        html_path.write_text(render.render_html(digest, changes, previous_at, flips), encoding="utf-8")
         written.append(html_path)
 
-    if not args.no_save:
-        written.append(store.save_snapshot(digest, args.out))
-
-        db = SessionLocal()
-        try:
-            inserted = history.record(db, digest, changes)
-        finally:
-            db.close()
-        if inserted:
-            print(f"신호 변화 {inserted}건을 이력에 기록했습니다.")
+    if inserted:
+        print(f"신호 변화 {inserted}건을 이력에 기록했습니다.")
 
     for path in written:
         print(f"저장: {path}")

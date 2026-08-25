@@ -174,3 +174,43 @@ def test_previous_generated_at_parses_the_stamp():
     assert store.previous_generated_at({"generated_at": "2026-08-22T08:30:00"}) == datetime(2026, 8, 22, 8, 30)
     assert store.previous_generated_at({"generated_at": "쓰레기"}) is None
     assert store.previous_generated_at(None) is None
+
+
+def test_renderers_show_the_flip_count(digest):
+    changes = store.diff_signals(digest, {"rows": [{"ticker": "000660", "signal": "HOLD"}]})
+    flips = {"000660": 4}
+
+    terminal = render.render_terminal(digest, changes, flips=flips)
+    markdown = render.render_markdown(digest, changes, flips=flips)
+    markup = render.render_html(digest, changes, flips=flips)
+
+    for text in (terminal, markdown, markup):
+        assert "30일 4회" in text
+
+
+def test_a_single_flip_is_not_worth_reporting(digest):
+    # 1회는 오늘의 전환일 뿐이라 셀 것이 없다.
+    changes = store.diff_signals(digest, {"rows": [{"ticker": "000660", "signal": "HOLD"}]})
+
+    text = render.render_terminal(digest, changes, flips={"000660": 1})
+
+    assert "30일" not in text
+
+
+def test_a_ticker_without_history_renders_unchanged(digest):
+    changes = store.diff_signals(digest, {"rows": [{"ticker": "000660", "signal": "HOLD"}]})
+
+    text = render.render_terminal(digest, changes, flips={})
+
+    assert "SK하이닉스" in text
+    assert "30일" not in text
+
+
+def test_html_escapes_around_the_flip_note(digest):
+    digest.rows[0].name = "<b>이름</b>"
+    changes = [store.Change("000660", "<b>이름</b>", "HOLD", "BUY", "up")]
+
+    markup = render.render_html(digest, changes, flips={"000660": 3})
+
+    assert "<b>이름</b>" not in markup.split("<h2>신호 변화</h2>")[1].split("</ul>")[0]
+    assert "30일 3회" in markup
