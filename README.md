@@ -90,6 +90,9 @@ DB는 앱과 같은 SQLite 파일을 **읽기만** 합니다. 분석 엔드포�
 
 출력 디렉터리에는 보유 수량과 평단가가 들어가기 때문에 `.gitignore`에 포함돼 있습니다.
 
+아침마다 자동으로 돌리려면 작업 스케줄러에 `digest-scheduled.bat`을 겁니다 —
+등록 명령과 확인·해제 방법은 [docs/SCHEDULING.md](docs/SCHEDULING.md)에 있습니다.
+
 동시 분석 수와 종목당 제한 시간은 환경변수로 조정합니다.
 
 ```env
@@ -267,6 +270,7 @@ frontend/   Next.js 앱 (app, components, lib)
 docs/       설계 노트와 스크린샷
 start.ps1   원클릭 실행 스크립트
 digest.bat  관심종목 일일 리포트 (backend/tools/digest)
+digest-scheduled.bat  작업 스케줄러용 (브라우저를 열지 않음)
 ```
 
 ## 설계 노트
