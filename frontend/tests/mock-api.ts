@@ -27,6 +27,7 @@ const ROUTES: [RegExp, string][] = [
   [/\/watchlist\b/, "watchlist.json"],
   [/\/portfolio\/analysis\b/, "portfolio.json"],
   [/\/retrospective\/summary\b/, "retrospective.json"],
+  [/\/retrospective\/signal-changes\b/, "signal-changes.json"],
   [/\/ic\/factors\b/, "ic.json"],
 ];
 

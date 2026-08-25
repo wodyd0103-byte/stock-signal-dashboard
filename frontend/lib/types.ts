@@ -446,6 +446,34 @@ export interface RetroSummary {
   recent: RetroRecord[];
 }
 
+export interface SignalFlip {
+  ticker: string;
+  name: string | null;
+  count: number;
+}
+
+export interface SignalChangeRecord {
+  id: number;
+  ticker: string;
+  name: string | null;
+  previous_signal: string | null;
+  current_signal: string;
+  direction: "up" | "down" | "new";
+  buy_score: number | null;
+  risk_score: number | null;
+  price: number | null;
+  recorded_at: string;
+}
+
+/** digest CLI 가 남긴 신호 전환 이력. */
+export interface SignalChangeSummary {
+  days: number;
+  total: number;
+  tickers: number;
+  flips: SignalFlip[];
+  recent: SignalChangeRecord[];
+}
+
 export interface Fundamental {
   ticker: string;
   per: number | null;

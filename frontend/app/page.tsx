@@ -10,6 +10,7 @@ import DiscoveryRail from "@/components/DiscoveryRail";
 import ICPanel from "@/components/ICPanel";
 import PortfolioPanel from "@/components/PortfolioPanel";
 import RetrospectivePanel from "@/components/RetrospectivePanel";
+import SignalHistoryPanel from "@/components/SignalHistoryPanel";
 import MiniSentiment from "@/components/MiniSentiment";
 import SettingsModal from "@/components/SettingsModal";
 import StockSearch from "@/components/StockSearch";
@@ -180,6 +181,7 @@ function Dashboard() {
             </div>
             <div {...tabs.getPanelProps("research")} className="space-y-4">
               <RetrospectivePanel />
+              <SignalHistoryPanel />
               <ICPanel />
             </div>
           </section>
