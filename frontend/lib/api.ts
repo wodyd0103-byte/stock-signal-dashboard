@@ -15,6 +15,7 @@ import type {
   RebalancePlan,
   RepresentativeStocksResponse,
   RetroSummary,
+  SignalChangeSummary,
   SurgeScanResponse,
   WatchlistSummary,
 } from "./types";
@@ -224,6 +225,10 @@ export function fetchRetroSummary(): Promise<RetroSummary> {
 
 export function evaluateRetro(): Promise<RetroSummary & { evaluated: number }> {
   return request("/retrospective/evaluate", { method: "POST" });
+}
+
+export function fetchSignalChanges(days = 30): Promise<SignalChangeSummary> {
+  return request<SignalChangeSummary>(`/retrospective/signal-changes?days=${days}`);
 }
 
 export function fetchFactorIC(params?: {

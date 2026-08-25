@@ -110,7 +110,7 @@ DIGEST_ITEM_TIMEOUT_SECONDS=40
 
 - **분석** — 가격 차트(종가/MA20/MA60), 종합 신호와 판정 근거, 기술적 지표, 리스크, 예측 가격, 목표가, 공시, 뉴스 감성, 수급, 백테스트 결과, 종목 비교
 - **포트폴리오** — 보유 종목 등록, 포트폴리오 분석, 리밸런싱 및 비중 최적화 제안
-- **리서치** — 과거 신호의 사후 검증(retrospective), 팩터별 IC(정보계수) 분석
+- **리서치** — 과거 신호의 사후 검증(retrospective), 신호 전환 이력, 팩터별 IC(정보계수) 분석
 
 좌측 레일은 매수 신호 상위 종목과 급등 탐색 결과를 보여주고, 관심 종목을 관리합니다. 상단에는 종목 검색, 기간 선택(1개월~3년), 시장 심리 지표, 다크 모드 토글, 설정이 있습니다.
 
@@ -129,7 +129,7 @@ DIGEST_ITEM_TIMEOUT_SECONDS=40
 | 급등 | `GET /surge/scan`, `GET /surge/{ticker}` |
 | 관심종목 | `GET /watchlist`, `POST /watchlist`, `DELETE /watchlist/{ticker}` |
 | 포트폴리오 | `GET /portfolio/holdings`, `POST /portfolio/holdings`, `DELETE /portfolio/holdings/{ticker}`, `GET /portfolio/analysis`, `/rebalance`, `/optimize` |
-| 리서치 | `GET /ic/factors`, `GET /retrospective/summary`, `POST /retrospective/evaluate` |
+| 리서치 | `GET /ic/factors`, `GET /retrospective/summary`, `POST /retrospective/evaluate`, `GET /retrospective/signal-changes` |
 | 내보내기 | `GET /export/buy-signals.csv`, `/export/watchlist.csv`, `/export/stock/{ticker}.csv` |
 
 ## 데이터 제공자와 fallback

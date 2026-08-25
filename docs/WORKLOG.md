@@ -283,6 +283,25 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - 창 길이(30일)는 `render.HISTORY_WINDOW_DAYS` 한 곳에 두고 CLI가 그 값으로 조회한다. 표시 문구와 조회 범위가 갈리면 숫자가 거짓말을 한다.
 - 다음: 남은 것은 아래 목록. 코드 쪽은 리서치 탭 연결과 메일 알림.
 
+## [T15] 신호 이력을 리서치 탭에
+- 일시: 2026-08-25 03:26
+- 상태: 완료
+- 목적: digest가 쌓은 전환 이력을 화면에서도 본다. 지금까지는 CLI 출력에만 있었다.
+- 변경:
+  - 백엔드: `app/services/signal_history_service.py` (신규), `app/routers/retrospective_router.py` (`GET /retrospective/signal-changes`), `tools/digest/history.py` (어댑터로 축소), `tests/test_signal_history_service.py` (신규 6), `tests/test_routers.py` (+3)
+  - 프론트: `components/SignalHistoryPanel.tsx` + 테스트 6, `lib/types.ts`, `lib/api.ts`, `hooks/queries.ts`, `app/page.tsx`, `demo-data/signal-changes.json`, `scripts/build-demo-api.mjs`, `tests/mock-api.ts`, `tests/demo-api.spec.ts`, `tests/signal-history.spec.ts` (신규 3)
+- 검증:
+  - 백엔드 `pytest -q` → **217 passed**.
+  - 프론트 `format:check` · `lint` 통과, `vitest` **159 passed**, `next build` 타입체크 통과, `playwright` **51 passed**.
+  - 브라우저에서 실제 확인: 백엔드·프론트 dev 서버를 띄워 리서치 탭에 패널이 회고와 IC 사이에 붙는 것과 엔드포인트가 `{"days":30,"total":0,...}`를 돌려주는 것을 확인.
+- 결정:
+  - **적재·조회 로직을 `app/services/`로 옮겼다.** 화면이 읽으려면 API가 필요한데, 라우터가 `tools/digest/history.py`를 import하면 앱이 CLI 도구에 의존하게 된다. 서비스는 `Digest`·`Change` 같은 CLI 자료구조를 모르고 평범한 dict를 받는다. 변환은 `tools/digest/history.py`가 맡아 얇은 어댑터로 남았다.
+  - 엔드포인트를 `retrospective` 아래에 뒀다. 리서치 탭이 이미 그 prefix를 읽고 있고, "지난 판단이 실제로 어땠나"라는 질문이 회고와 같은 종류다.
+  - **패널은 접힌 채로 시작하고 펼칠 때만 조회한다.** 회고·IC 패널과 같은 방식이다. 리서치 탭을 여는 것만으로 세 종류의 조회가 동시에 나가면 안 된다.
+  - 기록이 없을 때 "고장"이 아니라 "아직 없음"으로 말하고, 이력이 digest 실행으로 쌓인다는 사실과 명령까지 화면에 적었다. 이 값은 화면이 만드는 것이 아니라서, 비어 있는 이유를 모르면 버그로 보인다.
+  - 데모 배포용 픽스처(`demo-data/signal-changes.json`)를 같이 넣었다. 데모에서 이 패널만 비면 링크로 들어온 사람에게는 그게 앱의 전부다.
+- **주의**: `next dev`를 띄우면 `frontend/AGENTS.md`와 `frontend/CLAUDE.md`가 자동 생성된다(Next.js가 `generate-agent-files.js`로 쓴다). 이번 작업과 무관하고 저장소에 에이전트 지침을 둘지는 별도 판단이라 커밋하지 않고 지웠다. `next dev`를 돌릴 때마다 다시 생긴다.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.

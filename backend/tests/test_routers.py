@@ -124,6 +124,7 @@ def client(monkeypatch, tmp_path):
     # 않으므로 실행되지 않는다(스케줄러도 같이 안 뜬다). 테이블은 직접 만든다.
     from app.models.holding import Holding  # noqa: F401
     from app.models.recommendation import Recommendation  # noqa: F401
+    from app.models.signal_change import SignalChange  # noqa: F401
     from app.models.watchlist import WatchlistItem  # noqa: F401
 
     database.Base.metadata.create_all(bind=engine)
@@ -253,6 +254,7 @@ def test_request_id_header_is_set(client):
         "/api/ic/factors",
         "/api/retrospective/summary",
         "/api/retrospective/evaluate",
+        "/api/retrospective/signal-changes",
         "/api/export/buy-signals.csv",
         "/api/export/watchlist.csv",
         "/api/export/stock/{ticker}.csv",
@@ -650,6 +652,53 @@ def test_retrospective_evaluate(client):
     response = client.post("/api/retrospective/evaluate")
     assert response.status_code == 200
     assert response.json()["evaluated"] == 0
+
+
+def test_signal_changes_on_empty_db(client):
+    response = client.get("/api/retrospective/signal-changes")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body == {"days": 30, "total": 0, "tickers": 0, "flips": [], "recent": []}
+
+
+def test_signal_changes_reports_what_digest_recorded(client):
+    """digest 가 남긴 이력을 리서치 화면이 읽는 경로."""
+    from datetime import datetime, timedelta
+
+    import app.database as database
+    from app.models.signal_change import SignalChange
+
+    session = database.SessionLocal()
+    try:
+        now = datetime.utcnow()
+        session.add_all([
+            SignalChange(ticker="005930", name="삼성전자", previous_signal="HOLD",
+                         current_signal="BUY", direction="up", source="digest",
+                         recorded_at=now - timedelta(days=1)),
+            SignalChange(ticker="005930", name="삼성전자", previous_signal="BUY",
+                         current_signal="HOLD", direction="down", source="digest",
+                         recorded_at=now - timedelta(days=4)),
+            SignalChange(ticker="000660", name="SK하이닉스", current_signal="SELL",
+                         direction="down", source="digest",
+                         recorded_at=now - timedelta(days=2)),
+        ])
+        session.commit()
+    finally:
+        session.close()
+
+    body = client.get("/api/retrospective/signal-changes?days=30").json()
+
+    assert body["total"] == 3
+    # 두 번 이상 뒤집힌 종목만 flips 에 오른다.
+    assert [f["ticker"] for f in body["flips"]] == ["005930"]
+    assert body["flips"][0]["count"] == 2
+    assert body["recent"][0]["ticker"] == "005930"
+
+
+def test_signal_changes_rejects_an_out_of_range_window(client):
+    assert client.get("/api/retrospective/signal-changes?days=0").status_code == 422
+    assert client.get("/api/retrospective/signal-changes?days=999").status_code == 422
 
 
 def test_analysis_records_a_buy_recommendation(client, forced_buy_signal):

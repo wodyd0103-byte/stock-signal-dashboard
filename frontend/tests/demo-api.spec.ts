@@ -17,6 +17,7 @@ const READS = [
   "/api/demo/watchlist",
   "/api/demo/portfolio/analysis",
   "/api/demo/retrospective/summary",
+  "/api/demo/retrospective/signal-changes",
   "/api/demo/ic/factors",
   "/api/demo/surge/scan",
   "/api/demo/market/compare",

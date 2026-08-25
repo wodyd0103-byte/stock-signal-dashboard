@@ -7,6 +7,7 @@ import {
   fetchPortfolioAnalysis,
   fetchRepresentativeStocks,
   fetchRetroSummary,
+  fetchSignalChanges,
   fetchSurgeScan,
   fetchWatchlist,
 } from "@/lib/api";
@@ -19,6 +20,7 @@ import type {
   PortfolioReport,
   RepresentativeStock,
   RetroSummary,
+  SignalChangeSummary,
   SurgeItem,
   WatchlistSummary,
 } from "@/lib/types";
@@ -91,6 +93,14 @@ export function useFactorIC(horizonDays: number, enabled: boolean): AsyncData<IC
 
 export function useRetroSummary(enabled: boolean): AsyncData<RetroSummary> {
   return useAsyncData(() => fetchRetroSummary(), [], { enabled });
+}
+
+/** digest 가 남긴 신호 전환 이력. 패널이 열릴 때만 읽는다. */
+export function useSignalChanges(enabled: boolean, days = 30): AsyncData<SignalChangeSummary> {
+  return useAsyncData(() => fetchSignalChanges(days), [days], {
+    enabled,
+    fallbackMessage: "신호 이력 조회 실패",
+  });
 }
 
 /**

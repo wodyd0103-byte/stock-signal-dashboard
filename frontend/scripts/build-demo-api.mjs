@@ -36,6 +36,7 @@ const FILES = [
   ["watchlist", "watchlist.json"],
   ["portfolio/analysis", "portfolio.json"],
   ["retrospective/summary", "retrospective.json"],
+  ["retrospective/signal-changes", "signal-changes.json"],
   ["ic/factors", "ic.json"],
 ];
 
