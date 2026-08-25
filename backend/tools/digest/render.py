@@ -32,6 +32,9 @@ _SIGNAL_COLOR = {
 
 COLUMNS = ("종목", "현재가", "등락", "신호", "매수점수", "리스크", "손익")
 
+# 이력 요약 창. history.recent()의 기본값과 맞춘다.
+HISTORY_WINDOW_DAYS = 30
+
 
 def _width(text: str) -> int:
     """한글·전각 문자는 터미널에서 두 칸을 먹는다."""
@@ -88,8 +91,26 @@ def _change_text(change: Change) -> str:
     return f"{change.previous} → {change.current}"
 
 
-def render_terminal(digest: Digest, changes: list[Change] | None = None, previous_at: datetime | None = None) -> str:
+# 한 번은 오늘의 전환일 뿐이라 셀 것이 없다. 두 번부터가 "오락가락한다"는 신호다.
+_FLIP_NOTE_FLOOR = 2
+
+
+def _flip_note(change: Change, flips: dict[str, int]) -> str:
+    """이 종목이 최근에 몇 번 뒤집혔는지. 오늘의 변화를 얼마나 믿을지의 재료."""
+    count = flips.get(change.ticker, 0)
+    if count < _FLIP_NOTE_FLOOR:
+        return ""
+    return f"{HISTORY_WINDOW_DAYS}일 {count}회"
+
+
+def render_terminal(
+    digest: Digest,
+    changes: list[Change] | None = None,
+    previous_at: datetime | None = None,
+    flips: dict[str, int] | None = None,
+) -> str:
     changes = changes or []
+    flips = flips or {}
     out: list[str] = []
 
     for line in _header_lines(digest, previous_at):
@@ -101,7 +122,9 @@ def render_terminal(digest: Digest, changes: list[Change] | None = None, previou
         for change in changes:
             colour = GREEN if change.direction == "up" else (YELLOW if change.is_new else RED)
             name = change.name or change.ticker
-            out.append(f"  {colour}●{RESET} {name} ({change.ticker})  {_change_text(change)}")
+            note = _flip_note(change, flips)
+            suffix = f"  {DIM}· {note}{RESET}" if note else ""
+            out.append(f"  {colour}●{RESET} {name} ({change.ticker})  {_change_text(change)}{suffix}")
         out.append("")
 
     if not digest.rows:
@@ -141,8 +164,14 @@ def render_terminal(digest: Digest, changes: list[Change] | None = None, previou
     return "\n".join(out)
 
 
-def render_markdown(digest: Digest, changes: list[Change] | None = None, previous_at: datetime | None = None) -> str:
+def render_markdown(
+    digest: Digest,
+    changes: list[Change] | None = None,
+    previous_at: datetime | None = None,
+    flips: dict[str, int] | None = None,
+) -> str:
     changes = changes or []
+    flips = flips or {}
     out = [f"# 관심종목 리포트 {digest.generated_at.strftime('%Y-%m-%d')}", ""]
     out += [f"- {line}" for line in _header_lines(digest, previous_at)]
     out.append("")
@@ -152,7 +181,9 @@ def render_markdown(digest: Digest, changes: list[Change] | None = None, previou
         for change in changes:
             marker = {"up": "▲", "down": "▼", "new": "＋"}.get(change.direction, "·")
             name = change.name or change.ticker
-            out.append(f"- {marker} **{name}** ({change.ticker}) — {_change_text(change)}")
+            note = _flip_note(change, flips)
+            suffix = f" _({note})_" if note else ""
+            out.append(f"- {marker} **{name}** ({change.ticker}) — {_change_text(change)}{suffix}")
         out.append("")
 
     out += ["## 종목", ""]
@@ -199,6 +230,7 @@ h2 { font-size: 15px; margin: 28px 0 10px; color: var(--muted); font-weight: 600
               border-left: 3px solid var(--line); }
 .changes li.up { border-left-color: var(--up); }
 .changes li.down { border-left-color: var(--down); }
+.changes .flip { margin-left: 8px; color: var(--muted); font-size: 12px; white-space: nowrap; }
 .table-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
@@ -215,8 +247,14 @@ def _cls(value: float) -> str:
     return "up" if value > 0 else "down" if value < 0 else ""
 
 
-def render_html(digest: Digest, changes: list[Change] | None = None, previous_at: datetime | None = None) -> str:
+def render_html(
+    digest: Digest,
+    changes: list[Change] | None = None,
+    previous_at: datetime | None = None,
+    flips: dict[str, int] | None = None,
+) -> str:
     changes = changes or []
+    flips = flips or {}
     esc = html.escape
     stamp = digest.generated_at.strftime("%Y-%m-%d")
 
@@ -234,9 +272,11 @@ def render_html(digest: Digest, changes: list[Change] | None = None, previous_at
         parts.append("<h2>신호 변화</h2><ul class=\"changes\">")
         for change in changes:
             name = esc(change.name or change.ticker)
+            note = _flip_note(change, flips)
+            suffix = f'<span class="flip">{esc(note)}</span>' if note else ""
             parts.append(
                 f'<li class="{change.direction}"><strong>{name}</strong> '
-                f'({esc(change.ticker)}) — {esc(_change_text(change))}</li>'
+                f'({esc(change.ticker)}) — {esc(_change_text(change))}{suffix}</li>'
             )
         parts.append("</ul>")
 
