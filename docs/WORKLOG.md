@@ -214,15 +214,16 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
 - 변경:
   - `docs/SCHEDULING.md` (신규)
   - `digest-scheduled.bat` (신규)
-  - `.gitattributes` (신규)
-  - `start.bat`, `stop.bat` (줄바꿈 CRLF로 교정)
+  - `start.bat`, `stop.bat`, `digest-scheduled.bat` (워킹트리 줄바꿈 CRLF로 교정)
   - `README.md` (스케줄링 문서 링크, 저장소 구조)
 - 검증: `digest-scheduled.bat`을 PowerShell에서 실제 실행 → 종료코드 0, `.md`/`.html`/`.json` 3개 생성 확인.
 - 결정:
   - **배치 파일을 둘로 나눴다.** `digest.bat`은 사람용(브라우저 열기 + 실패 시 `pause`), `digest-scheduled.bat`은 자동 실행용(둘 다 없음). 자동 실행에 사람용을 걸면 자리에 없을 때 브라우저가 뜨고, 실패 시 `pause`가 걸려 작업이 끝나지 않은 채로 남는다.
   - `schtasks` 명령은 문서에 적기만 하고 실행하지 않았다. 등록·해제·확인·실패 코드 해석까지 적어 뒀다.
   - 종료코드에 9를 추가했다(가상환경 없음). 스케줄러의 `Last Result`만 보고 원인을 구분할 수 있다.
-- **잡은 버그 1건 (기존 파일 포함)**: `digest-scheduled.bat`을 실제로 돌리자 `'…' is not recognized`가 떴다. 원인은 줄바꿈 — cmd.exe는 CRLF를 요구하는데 LF로 저장돼 있었고, 한글 `REM`이 섞인 줄에서 파싱이 깨졌다. 확인해 보니 **`start.bat`, `stop.bat`도 같은 상태**였다(기존 파일). 셋 다 CRLF로 고치고, 다시 LF로 체크아웃되지 않도록 `.gitattributes`에 `*.bat text eol=crlf`를 넣었다. 실행해 보지 않았으면 못 잡았을 버그다.
+- **잡은 버그 1건**: `digest-scheduled.bat`을 실제로 돌리자 `'…' is not recognized`가 떴다. 원인은 줄바꿈 — cmd.exe는 CRLF를 요구하는데 LF로 저장돼 있었고, 한글 `REM`이 섞인 줄에서 파싱이 깨졌다. `start.bat`, `stop.bat`도 워킹트리가 같은 상태였다. 셋 다 CRLF로 고쳤다. 실행해 보지 않았으면 못 잡았을 버그다.
+  - 저장소에는 이미 `.gitattributes`에 `*.bat text eol=crlf` 규칙이 있었다. 이 속성은 **체크아웃할 때** 적용되므로, 내가 도구로 직접 쓴 파일에는 걸리지 않아 LF로 남았던 것이다. `git add --renormalize`로 정리했다 — 워킹트리는 CRLF, 저장소에는 LF로 들어간다.
+- **내가 낸 사고 1건**: 위 규칙이 이미 있는 줄 모르고 `.gitattributes`를 **새로 쓰면서 기존 내용을 덮어썼다.** 원본에 있던 `* text=auto eol=lf`가 사라졌는데, 이건 Windows 체크아웃에서 워킹트리가 CRLF가 되어 `npm run format:check`가 로컬에서만 깨지는 것을 막는 규칙이다. `git show HEAD~1:.gitattributes`로 원복했다. 파일을 새로 만들기 전에 존재 여부를 먼저 확인해야 했다.
 - 다음: T12 문서 정리 후 PR.
 
 ## 남은 작업 (다음 세션)
