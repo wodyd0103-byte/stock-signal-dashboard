@@ -6,7 +6,7 @@ DataProviderError 가 HTTP 로 옳게 번역되는지, DB 쓰기 엔드포인트
 쓰고 지우는지.
 
 네트워크와 실 DB 는 타지 않는다. `StockDataProvider.fetch_ohlcv` 를 클래스에서
-갈아끼우므로 라우터마다 따로 만든 provider 싱글턴 네 개가 한 번에 덮인다.
+갈아끼우므로 따로 만든 provider 싱글턴이 몇 개든 한 번에 덮인다.
 DB 는 tmp_path 의 SQLite 로 돌리고, `get_db` 의존성과 `SessionLocal` 을 둘 다
 바꿔서 `backend/quant_app.db` 에는 손대지 않는다.
 """
@@ -113,7 +113,8 @@ class _FakeSurgePrediction:
 def client(monkeypatch, tmp_path):
     import app.database as database
     from app.main import app
-    from app.routers import market_router, surge_router
+    from app.routers import surge_router
+    from app.services import scan_service
 
     engine = create_engine(
         f"sqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False}
@@ -178,8 +179,7 @@ def client(monkeypatch, tmp_path):
     monkeypatch.setattr(SurgePredictor, "predict", lambda self, enriched: _FakeSurgePrediction())
 
     # 라우터 모듈 캐시는 프로세스 수명 내내 살아있다. 테스트끼리 새지 않게 비운다.
-    market_router._analysis_cache.clear()
-    market_router._payload_cache.clear()
+    scan_service.clear_caches()
     surge_router._scan_cache.clear()
 
     # 컨텍스트 매니저로 열지 않는다 — startup 이벤트가 돌면 실 DB 로 init_db 하고
@@ -187,8 +187,7 @@ def client(monkeypatch, tmp_path):
     yield TestClient(app)
 
     app.dependency_overrides.clear()
-    market_router._analysis_cache.clear()
-    market_router._payload_cache.clear()
+    scan_service.clear_caches()
     surge_router._scan_cache.clear()
 
 

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.watchlist import WatchlistItem
-from app.routers.market_router import _buy_signals_payload
+from app.services.scan_service import buy_signals_payload
 from app.routers import analysis_http
 from app.services.analysis_service import load_enriched, prediction_service, quote_from_frame, risk_service, signal_service
 
@@ -67,7 +67,7 @@ def export_buy_signals(
     force_refresh: bool = Query(False),
 ) -> StreamingResponse:
     """매수 신호 결과를 CSV로 다운로드."""
-    payload = _buy_signals_payload(
+    payload = buy_signals_payload(
         market=market,
         min_signal=min_signal,
         kr_limit=kr_limit,

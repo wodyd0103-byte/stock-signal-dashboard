@@ -35,7 +35,7 @@ def _refresh_analysis_cache() -> None:
     """매수 신호 + 관심종목 분석을 백그라운드에서 미리 계산."""
     from app.database import SessionLocal
     from app.models.watchlist import WatchlistItem
-    from app.routers.market_router import _buy_signals_payload
+    from app.services.scan_service import buy_signals_payload
     from app.services.analysis_service import load_enriched, prediction_service, risk_service, signal_service
 
     start = datetime.now()
@@ -51,14 +51,14 @@ def _refresh_analysis_cache() -> None:
 
     # 1. 매수 신호 캐시 워밍 (all + 발굴탭이 쓰는 KR 둘 다)
     try:
-        result = _buy_signals_payload(
+        result = buy_signals_payload(
             market="all", min_signal="WEAK_BUY",
             kr_limit=100, us_limit=100, limit=100,
             include_sample=False, source="auto",
             sort_by="signal", force_refresh=True,
         )
         # 발굴 레일과 동일 파라미터 (market=KR, limit=30) → 첫 로드 즉시
-        _buy_signals_payload(
+        buy_signals_payload(
             market="KR", min_signal="WEAK_BUY",
             kr_limit=100, us_limit=100, limit=30,
             include_sample=False, source="auto",
