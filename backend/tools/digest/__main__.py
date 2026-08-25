@@ -73,8 +73,16 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="?",
         const="auto",
         default="off",
-        choices=("auto", "toast", "console", "off"),
-        help="신호 변화가 있을 때만 알림. auto=토스트 실패 시 콘솔 (기본: off)",
+        choices=("auto", "toast", "email", "all", "console", "off"),
+        help=(
+            "신호 변화가 있을 때만 알림. 같은 변화로는 다시 보내지 않는다. "
+            "auto=토스트(실패 시 콘솔), email=메일, all=토스트+메일 (기본: off)"
+        ),
+    )
+    parser.add_argument(
+        "--renotify",
+        action="store_true",
+        help="같은 변화라도 다시 알린다 (중복 차단 해제)",
     )
     return parser
 
@@ -132,7 +140,13 @@ def main(argv: list[str] | None = None) -> int:
     for path in written:
         print(f"저장: {path}")
 
-    notify.notify(changes, backend=args.notify)
+    sent = notify.notify(
+        changes,
+        backend=args.notify,
+        state_dir=None if args.renotify else args.out,
+    )
+    if not sent.sent and sent.detail and args.notify != "off":
+        print(f"알림: {sent.detail}", file=sys.stderr)
 
     if args.open:
         if html_path:
