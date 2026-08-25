@@ -15,7 +15,7 @@ if not exist "%VENV%" (
 )
 
 pushd "%~dp0backend"
-"%VENV%" -X utf8 -m tools.digest --md --html --open %*
+"%VENV%" -X utf8 -m tools.digest --md --html --open --notify %*
 set "CODE=%ERRORLEVEL%"
 popd
 

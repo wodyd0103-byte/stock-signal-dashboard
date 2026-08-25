@@ -13,7 +13,8 @@ import sys
 import webbrowser
 from pathlib import Path
 
-from tools.digest import collector, render, store
+from app.database import SessionLocal
+from tools.digest import collector, history, notify, render, store
 
 PERIODS = ("1mo", "3mo", "6mo", "1y", "3y")
 SOURCES = ("watchlist", "holdings")
@@ -67,6 +68,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--workers", type=int, default=collector.MAX_WORKERS, help="동시 분석 수")
     parser.add_argument("--timeout", type=int, default=collector.ITEM_TIMEOUT_SECONDS, help="종목당 제한 시간(초)")
     parser.add_argument("--colour", "--color", dest="colour", choices=("auto", "always", "never"), default="auto")
+    parser.add_argument(
+        "--notify",
+        nargs="?",
+        const="auto",
+        default="off",
+        choices=("auto", "toast", "console", "off"),
+        help="신호 변화가 있을 때만 알림. auto=토스트 실패 시 콘솔 (기본: off)",
+    )
     return parser
 
 
@@ -107,8 +116,18 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_save:
         written.append(store.save_snapshot(digest, args.out))
 
+        db = SessionLocal()
+        try:
+            inserted = history.record(db, digest, changes)
+        finally:
+            db.close()
+        if inserted:
+            print(f"신호 변화 {inserted}건을 이력에 기록했습니다.")
+
     for path in written:
         print(f"저장: {path}")
+
+    notify.notify(changes, backend=args.notify)
 
     if args.open:
         if html_path:

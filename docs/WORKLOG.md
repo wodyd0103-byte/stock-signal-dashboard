@@ -148,6 +148,84 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - T05와 T06이 `git add -A` 때문에 한 커밋에 들어갔다. Task마다 커밋 규칙에 어긋나 `git reset --soft HEAD~1` 후 둘로 나눴다.
   - 커밋 메시지는 여러 줄일 때 `git commit -F -`에 heredoc으로 넘긴다. `-m @'...'@` 는 쓰지 않는다.
 
+## [T08] 종목 등록 CLI
+- 일시: 2026-08-25 00:47
+- 상태: 완료
+- 목적: digest를 실제로 쓸 수 있게 한다. 관심종목·보유가 0건이라 지금은 빈 표만 나온다.
+- 변경:
+  - `backend/tools/stocks/__init__.py`, `registry.py`, `__main__.py` (신규)
+  - `backend/tests/test_stocks_cli.py` (신규, 13 케이스)
+- 검증: `pytest tests/test_stocks_cli.py -q` → **13 passed**. 실 DB에 `python -m tools.stocks list` 실행 → 관심종목 0건 / 보유 0건 정상 출력 (읽기만).
+- 결정:
+  - **동작을 REST 엔드포인트와 맞췄다.** 관심종목 추가는 멱등(이미 있으면 그대로), 보유 추가는 재매수 평균으로 합친다. 두 경로가 다르게 굴면 CLI로 넣은 종목과 화면으로 넣은 종목이 서로 다른 상태가 된다. 덮어쓰려면 `--replace`를 따로 줘야 한다.
+  - 티커 대신 **종목명도 받는다** (`watch add 삼성전자`). `app/core/stock_universe.py`의 대표 목록으로 이름↔티커를 양방향 조회하고, 목록에 없으면 `resolve_ticker`로 넘긴다. 대표 목록은 편의용이지 허용 목록이 아니라서, 목록 밖 종목도 그대로 통과시킨다.
+  - 종료코드를 나눴다: 없는 종목 삭제 1, 잘못된 입력(티커 형식 오류·수량 0 이하) 2. 스크립트에서 구분해 처리할 수 있다.
+  - 등록 로직은 `registry.py`에 Session을 받는 순수 함수로 두고 CLI는 얇게. 테스트가 CLI를 거치지 않고도 로직을 부를 수 있다.
+- 다음: T09 신호 변화 이력 테이블.
+
+## [T09] 신호 변화 이력 테이블
+- 일시: 2026-08-25 01:05
+- 상태: 완료
+- 목적: "이 종목이 최근 몇 번 뒤집혔나"에 답할 수 있게 한다. JSON 스냅샷은 직전 대비만 답한다.
+- 변경:
+  - `backend/app/models/signal_change.py` (신규)
+  - `backend/migrations/versions/0004_signal_changes.py` (신규)
+  - `backend/app/database.py` (`init_db`에 모델 등록)
+  - `backend/tools/digest/history.py` (신규), `backend/tools/digest/__main__.py` (기록 배선)
+  - `backend/tests/test_digest_history.py` (신규, 7 케이스), `backend/tests/test_digest_cli.py` (DB 격리 + 이력 검증)
+- 검증:
+  - `pytest -q` → **188 passed** (79s). 168 → 188 (+13 T08, +7 T09).
+  - 실 DB 마이그레이션 적용. 적용 전 `quant_app.db`를 스크래치패드에 백업(`quant_app.db.bak-20260825-220240`).
+  - `alembic downgrade -1` → `upgrade head` 왕복 확인. 최종 리비전 `0004_signal_changes`, 인덱스 3개 생성 확인.
+- **T04 결정 일부 변경**: T04에서 "digest는 DB를 읽기만 한다"고 정했다. 그 규칙의 목적은 **추천 이력(회고 데이터) 오염 방지**였고 그건 그대로다 — digest는 지금도 `recommendations`를 건드리지 않는다. `signal_changes`는 digest가 스스로 만드는 자기 기록이라 성격이 다르다고 판단해 쓰기를 허용했다. `--no-save`를 주면 스냅샷과 함께 이력 기록도 건너뛴다.
+- 결정:
+  - **같은 날 같은 전환은 한 번만 적재한다.** 하루에 digest를 두 번 돌린다고 이력이 부풀면 "몇 번 뒤집혔나"가 실행 횟수를 세는 지표가 된다.
+  - 변화가 있는데 그 종목이 이번 실행에서 실패해 `rows`에 없을 수 있다. 그 경우 가격·점수를 `None`으로 두고 변화 자체는 남긴다.
+  - `flip_counts()`를 같이 넣었다. 자주 뒤집히는 종목일수록 신호를 덜 믿어야 한다는 판단 재료이고, 나중에 `retrospective_service`가 읽을 자리다.
+- **잡은 버그 2건**:
+  - 마이그레이션이 `index ix_signal_changes_id already exists`로 죽었다. 컬럼 정의의 `primary_key=True, index=True`가 이미 인덱스를 만드는데 `op.create_index`로 또 만들었다. 테이블만 생기고 리비전은 0003에 멈춘 반쯤 적용된 상태가 됐다. 빈 테이블(0행)임을 확인하고 drop 후 재적용했다.
+  - `test_digest_cli.py`가 `SessionLocal`을 패치하지 않아 **테스트가 실제 앱 DB에 접근**했다. 임시 DB로 격리했다. 하위 디렉터리에 두지 않으면 산출물 목록 검사에 DB 파일이 섞인다.
+- 다음: T10 변화가 있을 때만 알림.
+
+## [T10] 신호 변화 알림
+- 일시: 2026-08-25 01:24
+- 상태: 완료
+- 목적: 매일 리포트를 열어보지 않아도 바뀐 것만 눈에 들어오게 한다.
+- 변경:
+  - `backend/tools/digest/notify.py` (신규)
+  - `backend/tools/digest/__main__.py` (`--notify` 플래그)
+  - `backend/tests/test_digest_notify.py` (신규, 13 케이스)
+  - `README.md`, `digest.bat` (`--notify` 추가)
+- 검증:
+  - `pytest -q` → **201 passed** (54s). 188 → 201.
+  - **실제 토스트 1회 발사 확인**: `backend=toast`, fallback 안 탐. 화면에 알림 표시됨.
+- 결정:
+  - **변화가 있을 때만 보낸다.** 변화 없는 날에도 알림이 오면 며칠 만에 무시하게 되고, 그때부터 알림은 없는 것과 같다. 이건 옵션이 아니라 기본 동작으로 박았다.
+  - **외부 패키지를 안 쓴다.** BurntToast 같은 모듈을 요구하면 스케줄러에 걸어둔 뒤 환경이 바뀌었을 때 조용히 죽는다. PowerShell로 WinRT `ToastNotificationManager`를 직접 부르고, AUMID는 PowerShell 자체 것을 쓴다(별도 앱 등록 불필요).
+  - **XML을 base64로 넘긴다.** 종목명·신호는 외부 데이터고 따옴표나 꺾쇠가 섞일 수 있다. 명령줄에 직접 끼우면 PowerShell 인용 규칙을 타고 깨지거나 주입 통로가 된다. base64 문자셋은 `[A-Za-z0-9+/=]`뿐이라 작은따옴표 안에서 안전하다. XML 안의 값은 `xml.sax.saxutils.escape`로 한 번 더 막는다. 테스트가 종목명이 스크립트 문자열에 **직접 나타나지 않는지**까지 검사한다.
+  - `--notify` 기본값은 `off`. 자동으로 알림을 켜지 않는다. `auto`는 토스트 실패 시 콘솔로 떨어지고, `toast`는 떨어지지 않는다(스케줄러에서 실패를 조용히 덮지 않으려는 경우).
+  - 토스트 실패는 예외로 올리지 않는다. 알림이 안 떴다고 리포트 생성이 실패하면 안 된다.
+- 다음: T11 작업 스케줄러 등록 안내.
+
+## [T11] 작업 스케줄러 등록 안내
+- 일시: 2026-08-25 01:38
+- 상태: 완료
+- 목적: 아침마다 자동 실행할 수 있게 절차를 남긴다. **등록 자체는 사용자가 직접** — 시스템 설정 변경이다.
+- 변경:
+  - `docs/SCHEDULING.md` (신규)
+  - `digest-scheduled.bat` (신규)
+  - `start.bat`, `stop.bat`, `digest-scheduled.bat` (워킹트리 줄바꿈 CRLF로 교정)
+  - `README.md` (스케줄링 문서 링크, 저장소 구조)
+- 검증: `digest-scheduled.bat`을 PowerShell에서 실제 실행 → 종료코드 0, `.md`/`.html`/`.json` 3개 생성 확인.
+- 결정:
+  - **배치 파일을 둘로 나눴다.** `digest.bat`은 사람용(브라우저 열기 + 실패 시 `pause`), `digest-scheduled.bat`은 자동 실행용(둘 다 없음). 자동 실행에 사람용을 걸면 자리에 없을 때 브라우저가 뜨고, 실패 시 `pause`가 걸려 작업이 끝나지 않은 채로 남는다.
+  - `schtasks` 명령은 문서에 적기만 하고 실행하지 않았다. 등록·해제·확인·실패 코드 해석까지 적어 뒀다.
+  - 종료코드에 9를 추가했다(가상환경 없음). 스케줄러의 `Last Result`만 보고 원인을 구분할 수 있다.
+- **잡은 버그 1건**: `digest-scheduled.bat`을 실제로 돌리자 `'…' is not recognized`가 떴다. 원인은 줄바꿈 — cmd.exe는 CRLF를 요구하는데 LF로 저장돼 있었고, 한글 `REM`이 섞인 줄에서 파싱이 깨졌다. `start.bat`, `stop.bat`도 워킹트리가 같은 상태였다. 셋 다 CRLF로 고쳤다. 실행해 보지 않았으면 못 잡았을 버그다.
+  - 저장소에는 이미 `.gitattributes`에 `*.bat text eol=crlf` 규칙이 있었다. 이 속성은 **체크아웃할 때** 적용되므로, 내가 도구로 직접 쓴 파일에는 걸리지 않아 LF로 남았던 것이다. `git add --renormalize`로 정리했다 — 워킹트리는 CRLF, 저장소에는 LF로 들어간다.
+- **내가 낸 사고 1건**: 위 규칙이 이미 있는 줄 모르고 `.gitattributes`를 **새로 쓰면서 기존 내용을 덮어썼다.** 원본에 있던 `* text=auto eol=lf`가 사라졌는데, 이건 Windows 체크아웃에서 워킹트리가 CRLF가 되어 `npm run format:check`가 로컬에서만 깨지는 것을 막는 규칙이다. `git show HEAD~1:.gitattributes`로 원복했다. 파일을 새로 만들기 전에 존재 여부를 먼저 확인해야 했다.
+- 다음: T12 문서 정리 후 PR.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
