@@ -113,8 +113,7 @@ class _FakeSurgePrediction:
 def client(monkeypatch, tmp_path):
     import app.database as database
     from app.main import app
-    from app.routers import surge_router
-    from app.services import scan_service
+    from app.services import scan_service, surge_scan_service
 
     engine = create_engine(
         f"sqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False}
@@ -180,7 +179,7 @@ def client(monkeypatch, tmp_path):
 
     # 라우터 모듈 캐시는 프로세스 수명 내내 살아있다. 테스트끼리 새지 않게 비운다.
     scan_service.clear_caches()
-    surge_router._scan_cache.clear()
+    surge_scan_service.clear_cache()
 
     # 컨텍스트 매니저로 열지 않는다 — startup 이벤트가 돌면 실 DB 로 init_db 하고
     # APScheduler 까지 뜬다. 미들웨어와 라우팅은 그대로 동작한다.
@@ -188,7 +187,7 @@ def client(monkeypatch, tmp_path):
 
     app.dependency_overrides.clear()
     scan_service.clear_caches()
-    surge_router._scan_cache.clear()
+    surge_scan_service.clear_cache()
 
 
 @pytest.fixture

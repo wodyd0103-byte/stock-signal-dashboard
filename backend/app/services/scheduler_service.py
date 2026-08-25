@@ -70,10 +70,10 @@ def _refresh_analysis_cache() -> None:
 
     # 1-b. 급등 탐색 캐시 워밍 (발굴 레일 KR 파라미터)
     try:
-        from app.routers.surge_router import scan_surge
-        scan_surge(market="KR", kr_limit=60, us_limit=0, horizon_days=10,
-                   upper_pct=10.0, lower_pct=5.0, limit=30,
-                   min_probability=0.2, force_refresh=True)
+        from app.services import surge_scan_service
+        surge_scan_service.scan(market="KR", kr_limit=60, us_limit=0, horizon_days=10,
+                                upper_pct=10.0, lower_pct=5.0, limit=30,
+                                min_probability=0.2, force_refresh=True)
         logger.info("[scheduler] 급등 탐색 갱신")
     except Exception as exc:
         logger.warning(f"[scheduler] 급등 탐색 갱신 실패: {exc}")

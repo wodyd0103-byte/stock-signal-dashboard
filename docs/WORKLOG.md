@@ -244,6 +244,26 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - `compare` 엔드포인트는 라우터에 남겼다. 유니버스 스캔이 아니라 별개 기능이고, 필요한 헬퍼는 `analysis_service`에서 가져온다.
 - 다음: T13 `surge_router.scan_surge` 추출 — 이게 끝나야 서비스가 라우터를 아는 곳이 하나도 없다.
 
+## [T13] 급등 스캔을 서비스로 추출
+- 일시: 2026-08-25 02:34
+- 상태: 완료
+- 목적: `scheduler_service`의 마지막 라우터 의존을 끊는다.
+- 변경:
+  - `backend/app/services/surge_scan_service.py` (신규)
+  - `backend/app/routers/surge_router.py` (200줄 → **66줄**)
+  - `backend/app/services/scheduler_service.py`, `backend/tests/test_routers.py` (호출부·캐시 초기화 이전)
+- 검증:
+  - `pytest -q` → **201 passed** (60s). 회귀 없음.
+  - AST 스캔: `app/services/*` → `app.routers` import **0건**. 목표 달성.
+  - `StockDataProvider()` 생성 위치 **1곳**(`analysis_service`). 시작 시점엔 4곳이었다.
+  - `app.main` import 성공, 라우트 34개 · OpenAPI 28 path — 추출 전과 동일.
+- 결정:
+  - 스캔 로직이 **엔드포인트 함수 본문에 통째로 들어 있었다.** `Query(...)` 기본값이 곧 함수 시그니처라 스케줄러가 라우터 함수를 직접 부르는 구조였다. 서비스의 `scan()`은 같은 인자 이름을 평범한 기본값으로 받고, `Query` 제약(ge/le)은 라우터에 남겼다 — 범위 검증은 HTTP 입력에 필요한 것이지 내부 호출자에게 강요할 것이 아니다.
+  - 서비스가 `SurgeItem` 스키마로 항목을 정규화해 dict를 돌려주고, 라우터가 `SurgeScanResponse`로 감싼다. `analysis_service`가 `AnalysisBundle`을 돌려주고 라우터가 응답 스키마를 만드는 것과 같은 모양.
+  - 단일 종목 예측도 `predict_one()`으로 뺐다. 라우터가 `RuntimeError`를 400으로 옮긴다.
+  - 유니버스 싱글턴은 `scan_service`의 것을 공유한다. 따로 만들면 유니버스 캐시가 두 벌이 된다.
+- **정리 결과 (T02부터 T13까지)**: 시작할 때 `stock_router`는 다른 모듈 7곳이 private 헬퍼를 가져다 쓰는 사실상의 서비스 허브였고, 라우터 3개가 provider 싱글턴을 각자 만들고 있었다. 지금은 서비스가 라우터를 모르고, provider는 한 인스턴스이며, `market_router` 440→129줄 · `surge_router` 200→66줄로 줄었다.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
