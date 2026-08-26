@@ -106,9 +106,18 @@ def _as_dict(row: SignalChange) -> dict[str, Any]:
     }
 
 
-def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS, limit: int = 40) -> dict[str, Any]:
-    """리서치 화면이 읽는 요약 — 자주 뒤집힌 종목과 최근 전환 목록."""
-    rows = recent(db, days)
+def summary(
+    db: Session,
+    days: int = DEFAULT_WINDOW_DAYS,
+    limit: int = 40,
+    ticker: str | None = None,
+) -> dict[str, Any]:
+    """신호 전환 요약 — 자주 뒤집힌 종목과 최근 전환 목록.
+
+    `ticker` 를 주면 그 종목만 본다. 종목 분석 화면이 "이 신호, 원래 자주 뒤집히나"를
+    물을 때 쓴다. 그때 `flips` 는 최대 한 줄이다.
+    """
+    rows = recent(db, days, ticker)
 
     counts: dict[str, int] = {}
     names: dict[str, str | None] = {}
@@ -127,6 +136,7 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS, limit: int = 40) -> di
 
     return {
         "days": days,
+        "ticker": ticker,
         "total": len(rows),
         "tickers": len(counts),
         "flips": flips,

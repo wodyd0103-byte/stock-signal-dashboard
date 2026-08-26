@@ -107,7 +107,7 @@ def test_summary_recent_is_newest_first_and_capped(session):
 def test_summary_is_empty_without_history(session):
     result = service.summary(session)
 
-    assert result == {"days": 30, "total": 0, "tickers": 0, "flips": [], "recent": []}
+    assert result == {"days": 30, "ticker": None, "total": 0, "tickers": 0, "flips": [], "recent": []}
 
 
 # --- 종류 구분 -----------------------------------------------------------
@@ -160,3 +160,34 @@ def test_summary_counts_only_grade_changes_as_flips(session):
     assert result["total"] == 3  # 최근 목록에는 전부 나온다
     assert [(f["ticker"], f["count"]) for f in result["flips"]] == [("005930", 2)]
     assert {row["kind"] for row in result["recent"]} == {"signal", "score"}
+
+
+def test_summary_can_narrow_to_one_ticker(session):
+    session.add_all([
+        _change("005930", "BUY", name="삼성전자", days_ago=1),
+        _change("005930", "HOLD", name="삼성전자", days_ago=3),
+        _change("000660", "SELL", name="SK하이닉스", days_ago=2),
+    ])
+    session.commit()
+
+    result = service.summary(session, days=30, ticker="005930")
+
+    assert result["ticker"] == "005930"
+    assert result["total"] == 2
+    assert [f["ticker"] for f in result["flips"]] == ["005930"]
+    assert {row["ticker"] for row in result["recent"]} == {"005930"}
+
+
+def test_summary_without_a_ticker_says_so(session):
+    assert service.summary(session)["ticker"] is None
+
+
+def test_a_ticker_with_one_flip_has_no_flips_entry(session):
+    session.add_all([_change("005930", "BUY", days_ago=1)])
+    session.commit()
+
+    result = service.summary(session, ticker="005930")
+
+    # 1회는 그 전환 자체라 셀 것이 없다.
+    assert result["total"] == 1
+    assert result["flips"] == []

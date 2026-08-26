@@ -96,11 +96,28 @@ export function useRetroSummary(enabled: boolean): AsyncData<RetroSummary> {
 }
 
 /** digest 가 남긴 신호 전환 이력. 패널이 열릴 때만 읽는다. */
-export function useSignalChanges(enabled: boolean, days = 30): AsyncData<SignalChangeSummary> {
-  return useAsyncData(() => fetchSignalChanges(days), [days], {
+export function useSignalChanges(
+  enabled: boolean,
+  days = 30,
+  ticker?: string,
+): AsyncData<SignalChangeSummary> {
+  return useAsyncData(() => fetchSignalChanges(days, ticker), [days, ticker], {
     enabled,
     fallbackMessage: "신호 이력 조회 실패",
   });
+}
+
+/**
+ * 이 종목이 최근 30일에 몇 번 뒤집혔나. 없으면 0.
+ *
+ * 분석 화면은 신호 하나를 보여준다. 그 신호를 얼마나 믿을지는 "이 종목이 원래
+ * 자주 뒤집히나"에 달렸는데, 지금까지는 리서치 탭까지 가야 알 수 있었다.
+ * 이력이 없어도(디지스트를 안 돌렸어도) 화면이 깨지지 않게 조용히 0을 준다.
+ */
+export function useTickerFlipCount(ticker: string | undefined): number {
+  const { data } = useSignalChanges(Boolean(ticker), 30, ticker);
+  if (!data || data.ticker !== ticker) return 0;
+  return data.flips[0]?.count ?? 0;
 }
 
 /**

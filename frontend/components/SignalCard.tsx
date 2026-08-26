@@ -40,7 +40,17 @@ function ScoreBar({
   );
 }
 
-export default function SignalCard({ signal }: { signal: SignalScore }) {
+/** 한 번은 그 전환 자체라 셀 것이 없다. 두 번부터가 "오락가락한다"는 신호다. */
+const FLIP_FLOOR = 2;
+
+export default function SignalCard({
+  signal,
+  flipCount = 0,
+}: {
+  signal: SignalScore;
+  /** 최근 30일 등급 전환 횟수. digest 가 쌓은 이력에서 온다. */
+  flipCount?: number;
+}) {
   const mlProbability =
     signal.ml_up_probability == null ? null : Math.round(signal.ml_up_probability * 100);
   const style = signalStyle[signal.signal];
@@ -52,6 +62,11 @@ export default function SignalCard({ signal }: { signal: SignalScore }) {
           <p className="text-xs font-semibold text-muted">종합 신호</p>
           <h2 className="mt-0.5 text-heading text-ink">{style.text}</h2>
           <p className="mt-1 text-xs text-muted">절대 점수 · 시장 국면 · ML 확률 반영</p>
+          {flipCount >= FLIP_FLOOR ? (
+            <p className="mt-1.5 text-xs font-semibold text-muted">
+              최근 30일 {flipCount}번 뒤집힘 — 그만큼 덜 믿을 근거
+            </p>
+          ) : null}
         </div>
         <span className={`chip text-sm px-3.5 py-1.5 ${style.bg}`}>
           <span>{style.emoji}</span>

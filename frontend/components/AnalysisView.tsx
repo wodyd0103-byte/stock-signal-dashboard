@@ -15,6 +15,7 @@ import SignalCard from "@/components/SignalCard";
 import SupplyDemandCard from "@/components/SupplyDemandCard";
 import IndicatorGuideInline from "@/components/IndicatorGuideInline";
 import BacktestSection from "@/components/BacktestSection";
+import { useTickerFlipCount } from "@/hooks/queries";
 import { buildStockCsvUrl, IS_DEMO } from "@/lib/api";
 import type { AnalysisResponse, Period } from "@/lib/types";
 
@@ -28,6 +29,9 @@ interface Props {
 }
 
 export default function AnalysisView({ analysis, loading, error, period, onAddWatchlist }: Props) {
+  // 훅은 아래 조기 반환보다 먼저 불러야 한다. 종목이 없으면 훅이 조회를 미룬다.
+  const flipCount = useTickerFlipCount(analysis?.ticker);
+
   if (!analysis && loading) return <LoadingSkeleton />;
   if (!analysis && error) {
     return (
@@ -106,7 +110,7 @@ export default function AnalysisView({ analysis, loading, error, period, onAddWa
       {/* 차트 + 신호 */}
       <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <PriceChart data={analysis.price_history} />
-        <SignalCard signal={analysis.signal} />
+        <SignalCard signal={analysis.signal} flipCount={flipCount} />
       </section>
 
       {/* 심리 + 목표가/매도시점 */}

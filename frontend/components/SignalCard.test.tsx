@@ -209,3 +209,25 @@ describe("SignalCard", () => {
     expect(container.textContent).toContain("· 강한 매수 구간");
   });
 });
+
+describe("전환 횟수 배지", () => {
+  it("자주 뒤집힌 종목이면 그 사실을 신호 옆에 적는다", () => {
+    render(<SignalCard signal={makeSignal()} flipCount={4} />);
+
+    expect(screen.getByText(/최근 30일 4번 뒤집힘/)).toBeTruthy();
+  });
+
+  it("한 번뿐이면 적지 않는다", () => {
+    // 1회는 그 전환 자체라 셀 것이 없다.
+    render(<SignalCard signal={makeSignal()} flipCount={1} />);
+
+    expect(screen.queryByText(/뒤집힘/)).toBeNull();
+  });
+
+  it("이력이 없어도 카드는 그대로 그려진다", () => {
+    // digest 를 한 번도 안 돌렸으면 0 이다. 그게 고장은 아니다.
+    render(<SignalCard signal={makeSignal()} />);
+
+    expect(screen.queryByText(/뒤집힘/)).toBeNull();
+  });
+});
