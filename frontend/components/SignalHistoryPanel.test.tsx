@@ -77,7 +77,8 @@ describe("SignalHistoryPanel", () => {
 
     openPanel();
 
-    expect(fetchSignalChanges).toHaveBeenCalledWith(30);
+    // 패널은 전체 이력을 본다 — 종목 인자 없이 부른다.
+    expect(fetchSignalChanges).toHaveBeenCalledWith(30, undefined);
     // 삼성전자는 전환 횟수 목록과 최근 전환 목록 양쪽에 나온다.
     expect((await screen.findAllByText("삼성전자")).length).toBe(2);
     expect(screen.getAllByText("2회")).toHaveLength(2);
@@ -120,6 +121,6 @@ describe("SignalHistoryPanel", () => {
     await screen.findAllByText("삼성전자");
     fireEvent.click(screen.getByRole("button", { name: "90일" }));
 
-    expect(fetchSignalChanges).toHaveBeenLastCalledWith(90);
+    expect(fetchSignalChanges).toHaveBeenLastCalledWith(90, undefined);
   });
 });
