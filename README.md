@@ -138,7 +138,7 @@ DIGEST_ITEM_TIMEOUT_SECONDS=40
 
 단일 페이지 애플리케이션이며, 상단 탭으로 영역을 전환합니다.
 
-- **분석** — 가격 차트(종가/MA20/MA60), 종합 신호와 판정 근거, 기술적 지표, 리스크, 예측 가격, 목표가, 공시, 뉴스 감성, 수급, 백테스트 결과, 종목 비교
+- **분석** — 가격 차트(종가/MA20/MA60), 종합 신호와 판정 근거(최근 30일 전환 횟수 포함), 기술적 지표, 리스크, 예측 가격, 목표가, 공시, 뉴스 감성, 수급, 백테스트 결과, 종목 비교
 - **포트폴리오** — 보유 종목 등록, 포트폴리오 분석, 리밸런싱 및 비중 최적화 제안
 - **리서치** — 과거 신호의 사후 검증(retrospective), 신호 전환 이력, 팩터별 IC(정보계수) 분석
 
@@ -159,7 +159,7 @@ DIGEST_ITEM_TIMEOUT_SECONDS=40
 | 급등 | `GET /surge/scan`, `GET /surge/{ticker}` |
 | 관심종목 | `GET /watchlist`, `POST /watchlist`, `DELETE /watchlist/{ticker}` |
 | 포트폴리오 | `GET /portfolio/holdings`, `POST /portfolio/holdings`, `DELETE /portfolio/holdings/{ticker}`, `GET /portfolio/analysis`, `/rebalance`, `/optimize` |
-| 리서치 | `GET /ic/factors`, `GET /retrospective/summary`, `POST /retrospective/evaluate`, `GET /retrospective/signal-changes` |
+| 리서치 | `GET /ic/factors`, `GET /retrospective/summary`, `POST /retrospective/evaluate`, `GET /retrospective/signal-changes` (`?ticker=` 로 한 종목만) |
 | 내보내기 | `GET /export/buy-signals.csv`, `/export/watchlist.csv`, `/export/stock/{ticker}.csv` |
 
 ## 데이터 제공자와 fallback

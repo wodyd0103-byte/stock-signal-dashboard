@@ -35,7 +35,8 @@ def evaluate(db: Session = Depends(get_db)) -> dict[str, Any]:
 @router.get("/signal-changes")
 def get_signal_changes(
     days: int = Query(30, ge=1, le=365),
+    ticker: str | None = Query(None, description="주면 그 종목만"),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
     """digest가 남긴 신호 전환 이력 — 자주 뒤집힌 종목과 최근 전환."""
-    return signal_history_service.summary(db, days=days)
+    return signal_history_service.summary(db, days=days, ticker=ticker)

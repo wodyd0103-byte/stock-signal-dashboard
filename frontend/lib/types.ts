@@ -472,6 +472,8 @@ export interface SignalChangeRecord {
 /** digest CLI 가 남긴 신호 전환 이력. */
 export interface SignalChangeSummary {
   days: number;
+  /** 한 종목만 조회했으면 그 티커. 전체면 null. */
+  ticker: string | null;
   total: number;
   tickers: number;
   flips: SignalFlip[];

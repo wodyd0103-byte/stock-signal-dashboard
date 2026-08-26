@@ -45,3 +45,10 @@ test("기간을 90일로 바꾸면 그 기간으로 다시 읽는다", async ({ 
 
   await expect.poll(() => windows).toContain("90");
 });
+
+test("분석 화면의 신호 카드가 그 종목의 전환 횟수를 함께 보여준다", async ({ page }) => {
+  // 리서치 탭까지 가지 않아도 "이 신호를 얼마나 믿을지"가 눈앞에 있어야 한다.
+  await page.getByRole("tab", { name: "분석" }).click();
+
+  await expect(page.getByText(/최근 30일 3번 뒤집힘/)).toBeVisible();
+});

@@ -227,8 +227,10 @@ export function evaluateRetro(): Promise<RetroSummary & { evaluated: number }> {
   return request("/retrospective/evaluate", { method: "POST" });
 }
 
-export function fetchSignalChanges(days = 30): Promise<SignalChangeSummary> {
-  return request<SignalChangeSummary>(`/retrospective/signal-changes?days=${days}`);
+export function fetchSignalChanges(days = 30, ticker?: string): Promise<SignalChangeSummary> {
+  const query = new URLSearchParams({ days: String(days) });
+  if (ticker) query.set("ticker", ticker);
+  return request<SignalChangeSummary>(`/retrospective/signal-changes?${query}`);
 }
 
 export function fetchFactorIC(params?: {

@@ -19,6 +19,7 @@ vi.mock("@/lib/api", () => ({ fetchSignalChanges }));
 function summary(overrides: Partial<SignalChangeSummary> = {}): SignalChangeSummary {
   return {
     days: 30,
+    ticker: null,
     total: 3,
     tickers: 2,
     flips: [

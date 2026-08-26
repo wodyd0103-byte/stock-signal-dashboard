@@ -659,7 +659,7 @@ def test_signal_changes_on_empty_db(client):
 
     assert response.status_code == 200
     body = response.json()
-    assert body == {"days": 30, "total": 0, "tickers": 0, "flips": [], "recent": []}
+    assert body == {"days": 30, "ticker": None, "total": 0, "tickers": 0, "flips": [], "recent": []}
 
 
 def test_signal_changes_reports_what_digest_recorded(client):
@@ -694,6 +694,38 @@ def test_signal_changes_reports_what_digest_recorded(client):
     assert [f["ticker"] for f in body["flips"]] == ["005930"]
     assert body["flips"][0]["count"] == 2
     assert body["recent"][0]["ticker"] == "005930"
+
+
+def test_signal_changes_can_narrow_to_one_ticker(client):
+    """종목 분석 화면이 "이 신호, 원래 자주 뒤집히나"를 물을 때 쓰는 경로."""
+    from datetime import datetime, timedelta
+
+    import app.database as database
+    from app.models.signal_change import SignalChange
+
+    session = database.SessionLocal()
+    try:
+        now = datetime.utcnow()
+        session.add_all([
+            SignalChange(ticker="005930", name="삼성전자", current_signal="BUY",
+                         direction="up", kind="signal", source="digest",
+                         recorded_at=now - timedelta(days=1)),
+            SignalChange(ticker="005930", name="삼성전자", current_signal="HOLD",
+                         direction="down", kind="signal", source="digest",
+                         recorded_at=now - timedelta(days=3)),
+            SignalChange(ticker="000660", name="SK하이닉스", current_signal="SELL",
+                         direction="down", kind="signal", source="digest",
+                         recorded_at=now - timedelta(days=2)),
+        ])
+        session.commit()
+    finally:
+        session.close()
+
+    body = client.get("/api/retrospective/signal-changes?ticker=005930").json()
+
+    assert body["ticker"] == "005930"
+    assert body["total"] == 2
+    assert {row["ticker"] for row in body["recent"]} == {"005930"}
 
 
 def test_signal_changes_rejects_an_out_of_range_window(client):
