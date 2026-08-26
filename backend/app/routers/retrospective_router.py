@@ -14,15 +14,9 @@ router = APIRouter(prefix="/retrospective", tags=["retrospective"])
 _service = RetrospectiveService()
 
 
-def _price_fn(ticker: str) -> float | None:
-    from app.services.analysis_service import data_provider
-    try:
-        res = data_provider.fetch_ohlcv(ticker, "1mo")
-        if res.data is not None and not res.data.empty:
-            return float(res.data.iloc[-1]["close"])
-    except Exception:
-        return None
-    return None
+def _price_fn(ticker: str, due) -> float | None:
+    from app.services.analysis_service import close_on
+    return close_on(ticker, due)
 
 
 @router.get("/summary")

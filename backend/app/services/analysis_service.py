@@ -12,12 +12,17 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 import pandas as pd
 
-from app.services.data_provider import DataProviderError, PriceDataResult, StockDataProvider
+from app.services.data_provider import (
+    PERIOD_TO_DAYS,
+    DataProviderError,
+    PriceDataResult,
+    StockDataProvider,
+)
 from app.services.ic_service import ICService
 from app.services.indicator_service import IndicatorService
 from app.services.korean_market_service import KoreanMarketService
@@ -221,6 +226,54 @@ def learned_signal_dict(enriched: pd.DataFrame) -> dict | None:
         return ls.to_dict() if ls else None
     except Exception:
         return None
+
+
+def latest_close(ticker: str, period: str = "1mo") -> float | None:
+    """최근 종가. 지표가 필요 없는 곳이 쓴다. 실패하면 None."""
+    try:
+        result = data_provider.fetch_ohlcv(ticker, period)
+    except Exception:
+        return None
+    if result.data is None or result.data.empty:
+        return None
+    return float(result.data.iloc[-1]["close"])
+
+
+def _period_covering(days: int) -> str:
+    """그 날짜까지 닿는 가장 짧은 기간. 짧을수록 조회가 가볍다."""
+    for period in ("1mo", "3mo", "6mo", "1y", "3y"):
+        if PERIOD_TO_DAYS[period] >= days:
+            return period
+    return "3y"
+
+
+def close_on(ticker: str, on: date) -> float | None:
+    """`on` 날짜의 종가. 그날이 휴장이면 그 다음 거래일.
+
+    회고 채점이 쓴다. "5일 뒤 성과"를 현재가로 재면 며칠 늦게 채점할수록 숫자가
+    부풀어 오른다 — horizon 5일짜리를 71일 뒤에 채점하면 71일 수익률이 5일 성과로
+    기록된다. 그래서 그 시점의 종가를 찾아온다.
+
+    아직 오지 않은 날짜이거나 데이터가 그 날까지 닿지 않으면 None.
+    """
+    gap = (date.today() - on).days
+    if gap < 0:
+        return None
+
+    try:
+        result = data_provider.fetch_ohlcv(ticker, _period_covering(gap + 7))
+    except Exception:
+        return None
+    if result.data is None or result.data.empty:
+        return None
+
+    frame = result.data
+    dates = pd.to_datetime(frame["date"]).dt.date
+    on_or_after = frame[dates >= on]
+    if on_or_after.empty:
+        # 그 날짜 이후 거래일이 아직 없다 — horizon 이 안 지난 셈이라 채점하지 않는다.
+        return None
+    return float(on_or_after.iloc[0]["close"])
 
 
 def return_pct(enriched: pd.DataFrame, days: int) -> float:
