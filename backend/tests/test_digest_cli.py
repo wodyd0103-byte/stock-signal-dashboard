@@ -38,6 +38,9 @@ def stub_collect(monkeypatch, tmp_path):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
+    from app.models.recommendation import Recommendation  # noqa: F401  테이블 등록용
+    from app.models.signal_change import SignalChange  # noqa: F401
+
     # 출력 디렉터리(tmp_path)를 그대로 쓰면 산출물 목록에 DB 파일이 섞인다.
     db_dir = tmp_path / "_db"
     db_dir.mkdir()
@@ -177,3 +180,82 @@ def test_no_save_leaves_the_history_alone(stub_collect, tmp_path, capsys):
         assert session.query(SignalChange).count() == 0
     finally:
         session.close()
+
+
+# --- 회고 채점 배선 -------------------------------------------------------
+
+
+def test_the_run_scores_due_recommendations(stub_collect, tmp_path, capsys, monkeypatch):
+    from datetime import datetime, timedelta
+
+    from app.models.recommendation import Recommendation
+    from tools.digest import retro
+
+    stub_collect(_digest())
+    session = cli.SessionLocal()
+    try:
+        session.add(
+            Recommendation(
+                ticker="005930", name="삼성전자", market="KR", signal="BUY",
+                buy_score=70, risk_score=30, price_at_rec=100_000.0, horizon_days=5,
+                status="open", recommended_at=datetime.utcnow() - timedelta(days=30),
+            )
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    monkeypatch.setattr(retro, "close_on", lambda ticker, due: 110_000.0)
+
+    cli.main(["--out", str(tmp_path)])
+
+    assert "회고 추천 1건을 채점했습니다" in capsys.readouterr().out
+    session = cli.SessionLocal()
+    try:
+        assert session.query(Recommendation).one().status == "evaluated"
+    finally:
+        session.close()
+
+
+def test_no_evaluate_leaves_recommendations_alone(stub_collect, tmp_path, monkeypatch):
+    from datetime import datetime, timedelta
+
+    from app.models.recommendation import Recommendation
+    from tools.digest import retro
+
+    stub_collect(_digest())
+    session = cli.SessionLocal()
+    try:
+        session.add(
+            Recommendation(
+                ticker="005930", name="삼성전자", market="KR", signal="BUY",
+                buy_score=70, risk_score=30, price_at_rec=100_000.0, horizon_days=5,
+                status="open", recommended_at=datetime.utcnow() - timedelta(days=30),
+            )
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    monkeypatch.setattr(retro, "close_on", lambda ticker, due: 110_000.0)
+
+    cli.main(["--no-evaluate", "--out", str(tmp_path)])
+
+    session = cli.SessionLocal()
+    try:
+        assert session.query(Recommendation).one().status == "open"
+    finally:
+        session.close()
+
+
+def test_a_scoring_failure_does_not_stop_the_report(stub_collect, tmp_path, capsys, monkeypatch):
+    from tools.digest import retro
+
+    stub_collect(_digest())
+    monkeypatch.setattr(retro, "evaluate", lambda db: (0, "회고 채점 실패: 연결 거부"))
+
+    assert cli.main(["--out", str(tmp_path)]) == 0
+
+    captured = capsys.readouterr()
+    assert "삼성전자" in captured.out  # 리포트는 그대로 나온다
+    assert "회고 채점 실패" in captured.err

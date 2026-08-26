@@ -14,7 +14,7 @@ import webbrowser
 from pathlib import Path
 
 from app.database import SessionLocal
-from tools.digest import collector, history, notify, render, store
+from tools.digest import collector, history, notify, render, retro, store
 
 PERIODS = ("1mo", "3mo", "6mo", "1y", "3y")
 SOURCES = ("watchlist", "holdings")
@@ -70,6 +70,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=store.SCORE_MOVE_FLOOR,
         help=f"매수점수가 이만큼 움직이면 등급이 그대로여도 보고한다 (기본: {store.SCORE_MOVE_FLOOR})",
     )
+    parser.add_argument(
+        "--no-evaluate",
+        action="store_true",
+        help="회고 채점을 건너뛴다 (기본은 horizon 지난 추천을 채점한다)",
+    )
     parser.add_argument("--no-save", action="store_true", help="스냅샷을 남기지 않는다 (다음 실행의 비교 대상이 안 됨)")
     parser.add_argument("--workers", type=int, default=collector.MAX_WORKERS, help="동시 분석 수")
     parser.add_argument("--timeout", type=int, default=collector.ITEM_TIMEOUT_SECONDS, help="종목당 제한 시간(초)")
@@ -116,11 +121,16 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_save:
         written.append(store.save_snapshot(digest, args.out))
 
+    evaluated = 0
+    retro_error: str | None = None
+
     db = SessionLocal()
     try:
         if not args.no_save:
             inserted = history.record(db, digest, changes)
         flips = history.flip_counts(db, days=render.HISTORY_WINDOW_DAYS)
+        if not args.no_evaluate:
+            evaluated, retro_error = retro.evaluate(db)
     finally:
         db.close()
 
@@ -142,6 +152,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if inserted:
         print(f"신호 변화 {inserted}건을 이력에 기록했습니다.")
+    if evaluated:
+        print(f"회고 추천 {evaluated}건을 채점했습니다.")
+    if retro_error:
+        print(retro_error, file=sys.stderr)
 
     for path in written:
         print(f"저장: {path}")

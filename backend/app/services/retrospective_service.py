@@ -52,7 +52,13 @@ class RetrospectiveService:
         return rec
 
     def evaluate_due(self, db: Session, price_fn) -> int:
-        """horizon 경과한 open 추천 채점. price_fn(ticker)->float|None. 채점 건수 반환."""
+        """horizon 경과한 open 추천 채점. 채점 건수 반환.
+
+        `price_fn(ticker, due_date) -> float | None` 은 **그 시점의** 종가를 준다.
+        현재가로 재면 늦게 채점할수록 숫자가 부풀어 오른다 — horizon 5일짜리를
+        71일 뒤에 채점하면 71일 수익률이 5일 성과로 남는다. 적중률과 평균수익이
+        그 숫자 위에 쌓이므로 시점을 지키는 것이 이 기능의 전제다.
+        """
         now = datetime.utcnow()
         open_recs = db.execute(
             select(Recommendation).where(Recommendation.status == "open")
@@ -63,7 +69,7 @@ class RetrospectiveService:
             if now < due:
                 continue
             try:
-                price_after = price_fn(rec.ticker)
+                price_after = price_fn(rec.ticker, due.date())
             except Exception:
                 price_after = None
             if price_after is None or rec.price_at_rec <= 0:

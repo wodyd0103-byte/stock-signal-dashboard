@@ -41,6 +41,8 @@ schtasks /Run /TN "QuantInsight Digest"
 ```
 
 결과는 `backend/data/digest/`에 그날 날짜로 `.md`, `.html`, `.json`이 생겼는지로 확인합니다.
+같은 실행에서 horizon이 지난 회고 추천도 채점됩니다 — 스케줄러를 안 쓰면 추천이 `open`으로
+남아 영영 채점되지 않기 때문입니다.
 신호가 바뀐 종목이 있으면 알림이 나갑니다. 바뀐 게 없으면 알림은 오지 않습니다 — 정상 동작입니다.
 
 알림이 시끄러우면 `digest-scheduled.bat`의 `--notify` 를 빼세요. 리포트 파일은 그대로 쌓이고

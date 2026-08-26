@@ -97,16 +97,10 @@ def _refresh_analysis_cache() -> None:
     # 3. 회고 채점 (horizon 경과 추천 평가)
     db2 = SessionLocal()
     try:
-        from app.services.analysis_service import data_provider
+        from app.services.analysis_service import close_on
         from app.services.retrospective_service import RetrospectiveService
 
-        def _price(ticker: str):
-            res = data_provider.fetch_ohlcv(ticker, "1mo")
-            if res.data is not None and not res.data.empty:
-                return float(res.data.iloc[-1]["close"])
-            return None
-
-        n = RetrospectiveService().evaluate_due(db2, _price)
+        n = RetrospectiveService().evaluate_due(db2, close_on)
         logger.info(f"[scheduler] 회고 채점 {n}건")
     except Exception as exc:
         logger.warning(f"[scheduler] 회고 채점 실패: {exc}")
