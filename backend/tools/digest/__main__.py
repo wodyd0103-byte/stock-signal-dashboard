@@ -64,6 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--html", action="store_true", help="HTML 파일로 저장")
     parser.add_argument("--open", action="store_true", help="저장한 HTML을 브라우저로 열기 (--html 필요)")
     parser.add_argument("--out", type=Path, default=store.DEFAULT_DIR, help="출력 디렉터리")
+    parser.add_argument(
+        "--score-move",
+        type=int,
+        default=store.SCORE_MOVE_FLOOR,
+        help=f"매수점수가 이만큼 움직이면 등급이 그대로여도 보고한다 (기본: {store.SCORE_MOVE_FLOOR})",
+    )
     parser.add_argument("--no-save", action="store_true", help="스냅샷을 남기지 않는다 (다음 실행의 비교 대상이 안 됨)")
     parser.add_argument("--workers", type=int, default=collector.MAX_WORKERS, help="동시 분석 수")
     parser.add_argument("--timeout", type=int, default=collector.ITEM_TIMEOUT_SECONDS, help="종목당 제한 시간(초)")
@@ -99,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     previous = store.load_previous(args.out, before=digest.generated_at.date())
-    changes = store.diff_signals(digest, previous)
+    changes = store.diff_signals(digest, previous, score_floor=args.score_move)
     previous_at = store.previous_generated_at(previous)
 
     written: list[Path] = []

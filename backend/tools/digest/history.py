@@ -36,6 +36,7 @@ def record(db: Session, digest: Digest, changes: list[Change]) -> int:
         row = rows.get(change.ticker)
         entries.append(
             {
+                "kind": change.kind,
                 "ticker": change.ticker,
                 "name": change.name,
                 "previous_signal": change.previous,

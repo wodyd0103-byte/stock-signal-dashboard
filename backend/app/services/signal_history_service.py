@@ -37,6 +37,7 @@ def record_changes(db: Session, entries: Iterable[dict[str, Any]], recorded_at: 
             db.query(SignalChange)
             .filter(
                 SignalChange.ticker == ticker,
+                SignalChange.kind == entry.get("kind", "signal"),
                 SignalChange.current_signal == current,
                 SignalChange.recorded_at >= day_start,
             )
@@ -47,6 +48,7 @@ def record_changes(db: Session, entries: Iterable[dict[str, Any]], recorded_at: 
 
         db.add(
             SignalChange(
+                kind=entry.get("kind", "signal"),
                 ticker=ticker,
                 name=entry.get("name"),
                 previous_signal=entry.get("previous_signal"),
@@ -75,9 +77,15 @@ def recent(db: Session, days: int = DEFAULT_WINDOW_DAYS, ticker: str | None = No
 
 
 def flip_counts(db: Session, days: int = DEFAULT_WINDOW_DAYS) -> dict[str, int]:
-    """종목별 전환 횟수. 자주 뒤집히는 종목일수록 신호를 덜 믿어야 한다."""
+    """종목별 등급 전환 횟수. 자주 뒤집히는 종목일수록 신호를 덜 믿어야 한다.
+
+    점수 이동은 세지 않는다. 등급을 넘지 않은 움직임까지 "뒤집혔다"고 세면
+    그 숫자가 무엇을 뜻하는지 흐려진다.
+    """
     counts: dict[str, int] = {}
     for row in recent(db, days):
+        if row.kind != "signal":
+            continue
         counts[row.ticker] = counts.get(row.ticker, 0) + 1
     return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
 
@@ -85,6 +93,7 @@ def flip_counts(db: Session, days: int = DEFAULT_WINDOW_DAYS) -> dict[str, int]:
 def _as_dict(row: SignalChange) -> dict[str, Any]:
     return {
         "id": row.id,
+        "kind": row.kind,
         "ticker": row.ticker,
         "name": row.name,
         "previous_signal": row.previous_signal,
@@ -104,9 +113,11 @@ def summary(db: Session, days: int = DEFAULT_WINDOW_DAYS, limit: int = 40) -> di
     counts: dict[str, int] = {}
     names: dict[str, str | None] = {}
     for row in rows:
-        counts[row.ticker] = counts.get(row.ticker, 0) + 1
         # rows 는 최신순이므로 처음 만난 이름이 가장 최근 이름이다.
         names.setdefault(row.ticker, row.name)
+        if row.kind != "signal":
+            continue
+        counts[row.ticker] = counts.get(row.ticker, 0) + 1
 
     flips = [
         {"ticker": ticker, "name": names.get(ticker), "count": count}

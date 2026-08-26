@@ -21,6 +21,9 @@ class SignalChange(Base):
     previous_signal: Mapped[str | None] = mapped_column(String(16), nullable=True)
     current_signal: Mapped[str] = mapped_column(String(16), nullable=False)
     direction: Mapped[str] = mapped_column(String(8), nullable=False)  # up | down | new
+    # 무엇이 바뀌었나. signal=등급 전환, score=매수점수 이동, risk=리스크 등급 변경.
+    # "몇 번 뒤집혔나"를 셀 때는 signal 만 센다.
+    kind: Mapped[str] = mapped_column(String(8), nullable=False, index=True, default="signal")
     buy_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     risk_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     price: Mapped[float | None] = mapped_column(Float, nullable=True)

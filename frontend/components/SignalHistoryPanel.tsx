@@ -74,7 +74,7 @@ export default function SignalHistoryPanel() {
               {data.flips.length ? (
                 <div>
                   <p className="mb-2 text-xs font-bold text-muted">
-                    자주 뒤집힌 종목 — 신호를 그만큼 덜 믿을 근거
+                    자주 뒤집힌 종목 — 등급이 바뀐 횟수만 셉니다
                   </p>
                   <div className="space-y-1">
                     {data.flips.map((flip) => (
@@ -120,13 +120,17 @@ export default function SignalHistoryPanel() {
   );
 }
 
+const KIND_LABEL: Record<string, string> = { score: "매수점수", risk: "리스크" };
+
 function ChangeRow({ row }: { row: SignalChangeRecord }) {
   const tone =
     row.direction === "up" ? "text-up" : row.direction === "down" ? "text-down" : "text-muted";
+  const label = KIND_LABEL[row.kind];
   return (
     <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs hover:bg-surface">
       <span className="w-28 truncate font-bold text-ink">{row.name || row.ticker}</span>
-      <span className={`font-bold ${tone}`}>
+      {label ? <span className="text-[10px] font-bold text-muted">{label}</span> : null}
+      <span className={`font-bold ${row.kind === "signal" ? tone : "text-sub"}`}>
         {row.previous_signal
           ? `${row.previous_signal} → ${row.current_signal}`
           : `신규 ${row.current_signal}`}
