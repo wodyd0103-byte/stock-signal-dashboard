@@ -23,12 +23,13 @@ def session(tmp_path):
     db.close()
 
 
-def _change(ticker, current, *, name=None, days_ago=1, direction="up"):
+def _change(ticker, current, *, name=None, days_ago=1, direction="up", kind="signal"):
     return SignalChange(
         ticker=ticker,
         name=name,
         current_signal=current,
         direction=direction,
+        kind=kind,
         source="digest",
         recorded_at=datetime.utcnow() - timedelta(days=days_ago),
     )
@@ -107,3 +108,55 @@ def test_summary_is_empty_without_history(session):
     result = service.summary(session)
 
     assert result == {"days": 30, "total": 0, "tickers": 0, "flips": [], "recent": []}
+
+
+# --- 종류 구분 -----------------------------------------------------------
+
+
+def test_kind_is_stored(session):
+    service.record_changes(
+        session,
+        [{"ticker": "005930", "current_signal": "18", "previous_signal": "1",
+          "direction": "up", "kind": "score"}],
+        datetime(2026, 8, 26, 8, 30),
+    )
+
+    assert session.query(SignalChange).one().kind == "score"
+
+
+def test_the_same_day_can_hold_a_grade_change_and_a_score_move(session):
+    at = datetime(2026, 8, 26, 8, 30)
+    entries = [
+        {"ticker": "005930", "current_signal": "BUY", "direction": "up", "kind": "signal"},
+        {"ticker": "005930", "current_signal": "BUY", "direction": "up", "kind": "score"},
+    ]
+
+    # 중복 판정은 종류까지 본다 — 다른 종류면 같은 날에도 둘 다 남는다.
+    assert service.record_changes(session, entries, at) == 2
+
+
+def test_flip_counts_ignores_score_moves(session):
+    session.add_all([
+        _change("005930", "BUY", days_ago=1),
+        _change("005930", "18", days_ago=2, kind="score"),
+        _change("005930", "보통", days_ago=3, kind="risk"),
+    ])
+    session.commit()
+
+    # 등급을 넘지 않은 움직임까지 세면 "몇 번 뒤집혔나"가 무슨 뜻인지 흐려진다.
+    assert service.flip_counts(session, days=30) == {"005930": 1}
+
+
+def test_summary_counts_only_grade_changes_as_flips(session):
+    session.add_all([
+        _change("005930", "BUY", name="삼성전자", days_ago=1),
+        _change("005930", "HOLD", name="삼성전자", days_ago=2),
+        _change("005930", "18", name="삼성전자", days_ago=3, kind="score"),
+    ])
+    session.commit()
+
+    result = service.summary(session, days=30)
+
+    assert result["total"] == 3  # 최근 목록에는 전부 나온다
+    assert [(f["ticker"], f["count"]) for f in result["flips"]] == [("005930", 2)]
+    assert {row["kind"] for row in result["recent"]} == {"signal", "score"}

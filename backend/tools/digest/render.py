@@ -85,10 +85,16 @@ def _header_lines(digest: Digest, previous_at: datetime | None) -> list[str]:
     return lines
 
 
+# 무엇이 바뀌었는지 한 단어로. 등급 변화는 접두어 없이 그대로 읽히는 편이 낫다.
+_KIND_LABEL = {"score": "매수점수", "risk": "리스크"}
+
+
 def _change_text(change: Change) -> str:
     if change.is_new:
         return f"신규 {change.current}"
-    return f"{change.previous} → {change.current}"
+    label = _KIND_LABEL.get(change.kind)
+    body = f"{change.previous} → {change.current}"
+    return f"{label} {body}" if label else body
 
 
 # 한 번은 오늘의 전환일 뿐이라 셀 것이 없다. 두 번부터가 "오락가락한다"는 신호다.
@@ -96,11 +102,30 @@ _FLIP_NOTE_FLOOR = 2
 
 
 def _flip_note(change: Change, flips: dict[str, int]) -> str:
-    """이 종목이 최근에 몇 번 뒤집혔는지. 오늘의 변화를 얼마나 믿을지의 재료."""
+    """이 종목이 최근에 몇 번 뒤집혔는지. 오늘의 변화를 얼마나 믿을지의 재료.
+
+    등급 전환에만 붙인다. 점수가 몇 점 움직였는지 옆에 전환 횟수를 붙이면
+    두 가지 다른 이야기가 한 줄에 섞인다.
+    """
+    if not change.is_signal:
+        return ""
     count = flips.get(change.ticker, 0)
     if count < _FLIP_NOTE_FLOOR:
         return ""
     return f"{HISTORY_WINDOW_DAYS}일 {count}회"
+
+
+def _changes_heading(changes: list[Change]) -> str:
+    """섹션 제목은 실제로 담긴 것을 말해야 한다.
+
+    점수만 움직인 날에 "신호 변화"라고 쓰면, 등급이 바뀐 날과 구분이 안 된다.
+    """
+    grades = sum(1 for change in changes if change.is_signal)
+    if grades == len(changes):
+        return "신호 변화"
+    if grades == 0:
+        return "점수·리스크 이동"
+    return "오늘 달라진 것"
 
 
 def render_terminal(
@@ -118,9 +143,11 @@ def render_terminal(
     out.append("")
 
     if changes:
-        out.append(f"{BOLD}신호 변화{RESET}")
+        out.append(f"{BOLD}{_changes_heading(changes)}{RESET}")
         for change in changes:
             colour = GREEN if change.direction == "up" else (YELLOW if change.is_new else RED)
+            if not change.is_signal:
+                colour = DIM + colour
             name = change.name or change.ticker
             note = _flip_note(change, flips)
             suffix = f"  {DIM}· {note}{RESET}" if note else ""
@@ -177,9 +204,9 @@ def render_markdown(
     out.append("")
 
     if changes:
-        out += ["## 신호 변화", ""]
+        out += [f"## {_changes_heading(changes)}", ""]
         for change in changes:
-            marker = {"up": "▲", "down": "▼", "new": "＋"}.get(change.direction, "·")
+            marker = "·" if not change.is_signal else {"up": "▲", "down": "▼", "new": "＋"}.get(change.direction, "·")
             name = change.name or change.ticker
             note = _flip_note(change, flips)
             suffix = f" _({note})_" if note else ""
@@ -231,6 +258,7 @@ h2 { font-size: 15px; margin: 28px 0 10px; color: var(--muted); font-weight: 600
 .changes li.up { border-left-color: var(--up); }
 .changes li.down { border-left-color: var(--down); }
 .changes .flip { margin-left: 8px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.changes li.minor { border-left-color: var(--line); opacity: .85; }
 .table-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
@@ -269,13 +297,14 @@ def render_html(
     parts += [f'<p class="meta">{esc(line)}</p>' for line in _header_lines(digest, previous_at)]
 
     if changes:
-        parts.append("<h2>신호 변화</h2><ul class=\"changes\">")
+        parts.append(f"<h2>{esc(_changes_heading(changes))}</h2><ul class=\"changes\">")
         for change in changes:
             name = esc(change.name or change.ticker)
             note = _flip_note(change, flips)
             suffix = f'<span class="flip">{esc(note)}</span>' if note else ""
+            classes = change.direction if change.is_signal else f"{change.direction} minor"
             parts.append(
-                f'<li class="{change.direction}"><strong>{name}</strong> '
+                f'<li class="{classes}"><strong>{name}</strong> '
                 f'({esc(change.ticker)}) — {esc(_change_text(change))}{suffix}</li>'
             )
         parts.append("</ul>")

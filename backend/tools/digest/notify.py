@@ -41,11 +41,22 @@ class Result:
 
 def summarise(changes: list[Change]) -> tuple[str, list[str]]:
     """토스트 한 장에 들어갈 제목과 본문 줄."""
-    title = f"신호 변화 {len(changes)}건"
+    grades = sum(1 for change in changes if change.is_signal)
+    if grades and grades != len(changes):
+        title = f"신호 변화 {grades}건 · 점수 이동 {len(changes) - grades}건"
+    elif grades:
+        title = f"신호 변화 {grades}건"
+    else:
+        title = f"점수 이동 {len(changes)}건"
+
+    labels = {"score": "매수점수 ", "risk": "리스크 "}
     lines = []
     for change in changes[:_MAX_LINES]:
         name = change.name or change.ticker
-        body = f"신규 {change.current}" if change.is_new else f"{change.previous} → {change.current}"
+        if change.is_new:
+            body = f"신규 {change.current}"
+        else:
+            body = f"{labels.get(change.kind, '')}{change.previous} → {change.current}"
         lines.append(f"{name}  {body}")
     if len(changes) > _MAX_LINES:
         lines.append(f"외 {len(changes) - _MAX_LINES}건")
@@ -110,7 +121,7 @@ def _print_console(title: str, lines: list[str]) -> None:
 
 def fingerprint(changes: list[Change]) -> str:
     """이 변화 묶음의 지문. 같은 전환 조합이면 같은 값이 나온다."""
-    parts = sorted(f"{c.ticker}:{c.previous or ''}>{c.current}" for c in changes)
+    parts = sorted(f"{c.kind}:{c.ticker}:{c.previous or ''}>{c.current}" for c in changes)
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
 
 

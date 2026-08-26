@@ -28,6 +28,7 @@ function summary(overrides: Partial<SignalChangeSummary> = {}): SignalChangeSumm
     recent: [
       {
         id: 3,
+        kind: "signal",
         ticker: "005930",
         name: "삼성전자",
         previous_signal: "BUY",
@@ -40,6 +41,7 @@ function summary(overrides: Partial<SignalChangeSummary> = {}): SignalChangeSumm
       },
       {
         id: 2,
+        kind: "score",
         ticker: "035420",
         name: "NAVER",
         previous_signal: null,
@@ -82,13 +84,15 @@ describe("SignalHistoryPanel", () => {
     expect(screen.getAllByText("000660").length).toBeGreaterThan(0);
   });
 
-  it("이름이 바뀐 신규 종목은 '신규'로 읽힌다", async () => {
+  it("신규 종목은 '신규'로, 점수 이동은 라벨과 함께 읽힌다", async () => {
     fetchSignalChanges.mockResolvedValue(summary());
 
     openPanel();
 
     expect(await screen.findByText("신규 HOLD")).toBeTruthy();
     expect(screen.getByText("BUY → HOLD")).toBeTruthy();
+    // 등급 전환과 점수 이동이 같은 목록에 섞이므로 무엇이 움직였는지 적는다.
+    expect(screen.getByText("매수점수")).toBeTruthy();
   });
 
   it("기록이 없으면 고장이 아니라 아직 없음으로 안내한다", async () => {

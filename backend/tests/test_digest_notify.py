@@ -318,3 +318,41 @@ def test_all_survives_one_channel_failing(smtp_env, fake_smtp, fake_powershell, 
     result = notify.notify([_change()], backend="all", state_dir=tmp_path)
 
     assert (result.sent, result.backend) == (True, "email")
+
+
+# --- 종류별 문구 ---------------------------------------------------------
+
+
+def _move(ticker="000660", name="SK하이닉스", previous="1", current="18", kind="score"):
+    return Change(ticker, name, previous, current, "up", kind)
+
+
+def test_a_score_move_reads_as_a_score_move():
+    title, lines = notify.summarise([_move()])
+
+    assert title == "점수 이동 1건"
+    assert lines == ["SK하이닉스  매수점수 1 → 18"]
+
+
+def test_a_mixed_batch_says_both_counts():
+    title, lines = notify.summarise([_change(), _move()])
+
+    assert title == "신호 변화 1건 · 점수 이동 1건"
+    assert lines == ["삼성전자  HOLD → BUY", "SK하이닉스  매수점수 1 → 18"]
+
+
+def test_a_risk_move_is_labelled():
+    _, lines = notify.summarise([_move(previous="높음", current="보통", kind="risk")])
+
+    assert lines == ["SK하이닉스  리스크 높음 → 보통"]
+
+
+def test_a_grade_change_and_a_score_move_are_different_alerts(fake_powershell, tmp_path):
+    fake_powershell()
+    same_values = ("005930", "삼성전자", "HOLD", "BUY")
+
+    notify.notify([Change(*same_values, "up", "signal")], state_dir=tmp_path)
+    second = notify.notify([Change(*same_values, "up", "score")], state_dir=tmp_path)
+
+    # 지문에 종류가 들어가지 않으면 두 번째가 중복으로 막힌다.
+    assert second.sent is True

@@ -214,3 +214,101 @@ def test_html_escapes_around_the_flip_note(digest):
 
     assert "<b>이름</b>" not in markup.split("<h2>신호 변화</h2>")[1].split("</ul>")[0]
     assert "30일 3회" in markup
+
+
+# --- 점수·리스크 이동 ------------------------------------------------------
+
+
+def _previous(**overrides):
+    """digest fixture 와 같은 상태의 직전 스냅샷. overrides 로 000660 만 흔든다.
+
+    두 종목을 다 넣는 이유: 빠진 종목은 "신규"로 잡혀서 검사하려는 변화에 섞인다.
+    """
+    rows = [
+        {"ticker": "000660", "signal": "BUY", "final_buy_score": 50, "risk_level": "보통"},
+        {"ticker": "005930", "signal": "HOLD", "final_buy_score": 50, "risk_level": "보통"},
+    ]
+    rows[0].update(overrides)
+    return {"rows": rows}
+
+
+def test_a_big_score_move_is_reported_even_when_the_grade_holds(digest):
+    # digest fixture 의 000660 은 HOLD, final_buy_score=50, risk_level=보통.
+    changes = store.diff_signals(digest, _previous(final_buy_score=10))
+
+    moves = [c for c in changes if c.ticker == "000660"]
+    assert [(c.kind, c.previous, c.current, c.direction) for c in moves] == [("score", "10", "50", "up")]
+
+
+def test_a_small_score_move_is_not_worth_reporting(digest):
+    changes = store.diff_signals(digest, _previous(final_buy_score=45))
+
+    assert [c for c in changes if c.ticker == "000660"] == []
+
+
+def test_the_threshold_is_adjustable(digest):
+    changes = store.diff_signals(digest, _previous(final_buy_score=45), score_floor=3)
+
+    assert [c.kind for c in changes if c.ticker == "000660"] == ["score"]
+
+
+def test_a_grade_change_hides_the_score_move_for_that_ticker(digest):
+    # 등급이 바뀌면 점수도 당연히 움직였다. 같은 사실을 두 줄로 말하지 않는다.
+    changes = store.diff_signals(digest, _previous(signal="SELL", final_buy_score=0))
+
+    kinds = [c.kind for c in changes if c.ticker == "000660"]
+    assert kinds == ["signal"]
+
+
+def test_a_risk_level_change_is_reported(digest):
+    changes = store.diff_signals(digest, _previous(risk_level="매우 높음"))
+
+    risk = [c for c in changes if c.kind == "risk"]
+    assert [(c.previous, c.current, c.direction) for c in risk] == [("매우 높음", "보통", "up")]
+
+
+def test_grade_changes_sort_above_score_moves(digest):
+    # 005930 은 등급이 바뀌고, 000660 은 점수만 움직인다.
+    previous = _previous(final_buy_score=10)
+    previous["rows"][1]["signal"] = "BUY"
+
+    changes = store.diff_signals(digest, previous)
+
+    assert [c.kind for c in changes] == ["signal", "score"]
+
+
+def test_renderers_label_what_moved(digest):
+    changes = store.diff_signals(digest, _previous(final_buy_score=10))
+
+    for text in (
+        render.render_terminal(digest, changes),
+        render.render_markdown(digest, changes),
+        render.render_html(digest, changes),
+    ):
+        assert "매수점수 10 → 50" in text
+
+
+def test_the_flip_count_is_not_attached_to_a_score_move(digest):
+    changes = store.diff_signals(digest, _previous(final_buy_score=10))
+
+    # 점수가 몇 점 움직였는지 옆에 전환 횟수를 붙이면 두 이야기가 섞인다.
+    assert "30일" not in render.render_terminal(digest, changes, flips={"000660": 5})
+
+
+def test_the_heading_says_what_actually_moved(digest):
+    grade_only = store.diff_signals(digest, {"rows": [{"ticker": "000660", "signal": "HOLD"}]})
+    score_only = store.diff_signals(digest, _previous(final_buy_score=10))
+
+    assert "신호 변화" in render.render_terminal(digest, grade_only)
+    # 점수만 움직인 날에 "신호 변화"라고 쓰면 등급이 바뀐 날과 구분이 안 된다.
+    assert "신호 변화" not in render.render_terminal(digest, score_only)
+    assert "점수·리스크 이동" in render.render_terminal(digest, score_only)
+
+
+def test_a_mixed_day_gets_a_neutral_heading(digest):
+    previous = _previous(final_buy_score=10)
+    previous["rows"][1]["signal"] = "BUY"
+
+    text = render.render_markdown(digest, store.diff_signals(digest, previous))
+
+    assert "## 오늘 달라진 것" in text

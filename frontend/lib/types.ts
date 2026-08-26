@@ -452,8 +452,12 @@ export interface SignalFlip {
   count: number;
 }
 
+/** 무엇이 바뀌었나. signal 만 "뒤집혔다"로 센다. */
+export type SignalChangeKind = "signal" | "score" | "risk";
+
 export interface SignalChangeRecord {
   id: number;
+  kind: SignalChangeKind;
   ticker: string;
   name: string | null;
   previous_signal: string | null;
