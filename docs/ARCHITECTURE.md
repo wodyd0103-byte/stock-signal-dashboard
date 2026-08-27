@@ -202,7 +202,9 @@ Playwright 라우트를 가로채 `demo-data/`를 돌려줍니다. 둘이 갈라
   띄우면 누구나 보유 종목을 추가·삭제할 수 있습니다. 호스팅할 계획이 생기면 그게 1순위입니다.
 - **폰트 파일은 여전히 외부 CDN(jsDelivr)에서 옵니다.** 렌더를 막던 스타일시트만 번들로
   내렸고(위 8번), woff2 조각은 그대로 바깥에서 받아옵니다. CDN이 죽으면 fallback 폰트로
-  렌더됩니다. 자체 호스팅하려면 92조각 3.2MB를 저장소에 넣어야 합니다.
+  렌더됩니다. 자체 호스팅하려면 92조각 3.2MB를 저장소에 넣어야 합니다. **전송량으로는
+  얻을 것이 없습니다** — 걷어낸 CDN 스타일시트가 12,493바이트(brotli)였고 그 자리에 들어간
+  우리 CSS 청크가 13,057바이트(gzip)입니다. 남는 이득은 외부 오리진 하나를 지우는 것뿐입니다.
 - **컴포넌트 단위 테스트가 표시 계층 전부를 덮지는 않습니다.** 스스로 계산하는 것들
   (`PriceTargetCard`, `ComparePanel`, `SupplyDemandCard`, `RiskCard`, `IndicatorTable`,
   `SignalCard`, `SignalHistoryPanel`, `FearGreedGauge`, `StockSearch`)은 덮었고, 백엔드
