@@ -265,20 +265,31 @@ function Row({
   );
 }
 
-/** 최대값 ticker 반환 (null 제외). 동률·전부 null이면 null. */
+/**
+ * 최대값 ticker 반환 (null 제외). 동률·전부 null이면 null.
+ *
+ * 동률을 null 로 두는 이유: 표 아래에 "초록 강조 = 항목별 우위"라고 적혀 있다.
+ * 값이 같은데 먼저 온 쪽에 초록을 칠하면 그 문장이 거짓이 된다. 예전에는
+ * `v > bestVal` 하나로만 갈라서 앞의 종목이 이겼다 — 주석은 지금 문장 그대로
+ * 였고, 코드만 달랐다.
+ */
 function argbest(
   items: CompareItem[],
   getter: (i: CompareItem) => number | null | undefined,
 ): string | null {
   let best: string | null = null;
   let bestVal = -Infinity;
+  let tied = false;
   for (const i of items) {
     const v = getter(i);
     if (v == null || Number.isNaN(v)) continue;
     if (v > bestVal) {
       bestVal = v;
       best = i.ticker;
+      tied = false;
+    } else if (v === bestVal) {
+      tied = true;
     }
   }
-  return best;
+  return tied ? null : best;
 }

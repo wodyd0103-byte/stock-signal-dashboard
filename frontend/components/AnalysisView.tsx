@@ -212,12 +212,35 @@ function LoadingSkeleton() {
   return (
     // 스켈레톤은 눈에만 보인다. 읽어주는 쪽에는 "불러오는 중"이라고 알려야
     // 빈 화면에서 기다려야 할지 판단할 수 있다.
+    //
+    // 블록 구성은 아래 실제 화면의 앞부분과 같은 순서·같은 높이다. 예전에는
+    // 히어로 + 한 줄뿐이라 약 520px 이었는데, 실제 내용은 4,000px 을 넘는다.
+    // 그 차이만큼 아래의 종목 비교 카드가 화면 안에서 밖으로 밀려나 데스크톱
+    // CLS 로 잡혔다. 여기서 첫 화면을 채워두면 비교 카드는 로딩 중에도 접힌
+    // 아래에 있고, 내용이 들어와도 화면 안에서 움직이는 것이 없다.
+    //
+    // 오류·빈 상태는 이 함수를 타지 않는다(위의 조기 반환). 그래서 이 높이가
+    // 빈 화면으로 남는 경우는 없다.
     <div className="space-y-4" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">분석을 불러오는 중입니다</span>
+      {/* 데이터 소스 배지 */}
+      <div className="h-9 animate-pulse rounded-card bg-surface" />
+      {/* 히어로 가격 */}
       <div className="h-32 animate-pulse rounded-card bg-surface" />
+      {/* 차트 + 신호 */}
+      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+        <div className="h-[380px] animate-pulse rounded-card bg-surface" />
+        <div className="h-[380px] animate-pulse rounded-card bg-surface" />
+      </div>
+      {/* 심리 + 목표가 */}
+      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="h-[300px] animate-pulse rounded-card bg-surface" />
+        <div className="h-[300px] animate-pulse rounded-card bg-surface" />
+      </div>
+      {/* 수급 + 뉴스 */}
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="h-[380px] animate-pulse rounded-card bg-surface" />
-        <div className="h-[380px] animate-pulse rounded-card bg-surface" />
+        <div className="h-[260px] animate-pulse rounded-card bg-surface" />
+        <div className="h-[260px] animate-pulse rounded-card bg-surface" />
       </div>
     </div>
   );

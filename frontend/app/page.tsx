@@ -127,11 +127,17 @@ function Dashboard() {
             <div className="min-h-0 flex-1">
               <DiscoveryRail onSelect={(t) => select(t)} selected={analysis?.ticker} />
             </div>
-            <WatchlistRail
-              ref={watchlistRef}
-              onSelect={(t) => select(t)}
-              selected={analysis?.ticker}
-            />
+            {/* lg 에서는 높이를 고정한다. 관심 목록이 스켈레톤에서 실제 목록으로
+                바뀌며 높이가 변하면, 위의 발굴 레일이 flex-1 로 그만큼 줄어들고
+                두 목록의 항목이 통째로 위아래로 밀린다(데스크톱 CLS의 주범이었다).
+                lg 아래에서는 레일이 본문 위에 쌓이므로 자연 높이 그대로 둔다. */}
+            <div className="lg:h-[300px] lg:min-h-0">
+              <WatchlistRail
+                ref={watchlistRef}
+                onSelect={(t) => select(t)}
+                selected={analysis?.ticker}
+              />
+            </div>
           </aside>
 
           {/* 메인: 3탭 (분석/포트폴리오/리서치) */}
