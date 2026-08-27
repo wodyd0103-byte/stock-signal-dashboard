@@ -191,11 +191,16 @@ export default function StockSearch({
         disabled={loading}
         className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-tossStrong px-4 text-base font-bold text-white transition-colors hover:bg-toss-600 disabled:cursor-not-allowed disabled:bg-toss-300 sm:min-w-28 sm:px-5"
       >
-        {loading ? (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-        ) : (
-          <Search size={18} />
-        )}
+        {/* 아이콘 자리의 폭을 고정한다. 스피너(16px)와 돋보기(18px)는 2px 차이지만,
+            좁은 화면에서는 그 2px 때문에 이 버튼이 다음 줄로 넘어간다. 그러면 폼이
+            58px 자라고 그 아래 본문 전체가 그만큼 밀린다(모바일 CLS의 주범이었다). */}
+        <span className="inline-flex h-[18px] w-[18px] items-center justify-center">
+          {loading ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <Search size={18} />
+          )}
+        </span>
         분석
       </button>
     </form>
