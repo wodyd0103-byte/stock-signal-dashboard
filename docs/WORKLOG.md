@@ -467,6 +467,25 @@ Watchlist Daily Digest 미니툴 개발 기록. Task 하나가 끝날 때마다 
   - **표본 1건의 적중률 100%는 아직 아무 의미가 없다.** 숫자가 그럴듯해 보이는 것과 믿을 만한 것은 다르다. digest가 매일 돌면서 쌓여야 한다.
 - **출처 추정**: 두 건 다 값이 지나치게 둥글다(70,000 / 100,000 → 110,000, 정확히 +10%). **테스트가 실 DB에 쓴 흔적으로 보인다** — T09에서 `test_digest_cli.py` 가 `SessionLocal` 을 패치하지 않아 실 DB에 접근하던 것을 잡았고, 같은 종류의 누수가 예전에도 있었을 가능성이 크다. 지금은 테스트가 임시 DB로 격리돼 있어 같은 경로로는 재발하지 않는다.
 
+## [T23] 폰트 스타일시트를 번들로 내려 렌더 블로킹 제거
+- 일시: 2026-08-27 21:30
+- 상태: 완료
+- 목적: 알려진 빚 3번. 첫 픽셀을 그리기 전에 외부 CDN 왕복을 한 번 기다리고 있었다.
+- 변경: `frontend/app/fonts.css` (신규), `frontend/app/layout.tsx`
+- 검증:
+  - `npm run format:check` / `npm run lint` 통과.
+  - `npm test` → `Test Files 11 passed (11)`, `Tests 162 passed (162)`.
+  - `npx playwright test` → `52 passed (29.0s)`.
+  - `npm run build` 성공. 생성된 `index.html` 의 `<link rel="stylesheet">` 두 개가 모두 `/_next/static/chunks/*.css` 다. **jsdelivr 스타일시트 링크가 사라진 것을 출력에서 직접 확인했다.**
+  - CSS 번들: 기존 chunk 27,036B(gzip 6,059B) + 새 폰트 chunk 57,359B(gzip 12,846B).
+- 결정:
+  - **next/font 로 가지 않았다.** ARCHITECTURE 에 "next/font 가 제대로 된 해법"이라고 적어뒀지만, 실제 파일을 재보니 그 길이 막혀 있다. Pretendard dynamic subset 은 92 조각(≈3.2MB)이고 통짜 variable woff2 는 2.0MB 다. `next/font/local` 은 `unicode-range` 를 표현할 수 없어 조각을 못 쓴다 — 즉 next/font 로 가면 **모든 방문자가 2.0MB 를 한 번에 받는다.** 지금은 실제 쓰이는 조각 몇 개만 받는다. 성능을 고치려던 작업이 성능을 깎는다.
+  - **막고 있던 것은 폰트 파일이 아니라 스타일시트였다.** 그래서 `@font-face` 선언 92개만 `app/fonts.css` 로 가져와 앱 CSS 번들에 넣고, `url()` 은 CDN 절대 경로로 바꿨다. 렌더 전에 기다리는 외부 요청이 이제 없다. woff2 는 여전히 CDN 에서 오지만 `font-display: swap` 이라 렌더를 막지 않는다.
+  - **preconnect 는 남겼다.** 이제 스타일시트가 아니라 woff2 를 위한 것이다. 주석도 그렇게 고쳤다.
+  - **선언을 `globals.css` 에 합치지 않고 파일을 나눴다.** 92개는 생성물이고 우리가 손으로 고칠 것이 아니다. 갱신 절차를 파일 머리 주석에 적어뒀다.
+- **주의**: 3rd-party 의존이 없어진 것은 아니다. 스타일시트 왕복 하나가 없어졌을 뿐, woff2 는 그대로 jsdelivr 에서 온다. CDN 이 죽으면 fallback 폰트로 렌더된다(그전에도 그랬다).
+- 다음: T24 로딩 스켈레톤 CLS.
+
 ## 남은 작업 (다음 세션)
 - **T07** 작업 스케줄러 등록 안내 — `schtasks` 명령과 확인 절차. 등록 자체는 사용자가 직접.
 - **T08** 알림 — 신호 변화가 있을 때만 Windows 토스트 또는 메일. 변화 없는 날 알림이 오면 곧 무시하게 된다.
