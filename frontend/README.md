@@ -54,7 +54,7 @@ app/         라우트, 레이아웃, 전역 CSS, 에러 바운더리
 components/  화면 컴포넌트 (전부 이 한 층, 하위 폴더 없음)
 hooks/       데이터 페칭 훅 (useAsyncData / useAsyncAction / queries)
 lib/api.ts   백엔드 호출 전부
-lib/types.ts API 응답 타입
+lib/types/   API 응답 타입. 도메인별 9개 파일 + 배럴(`@/lib/types`로 가져다 쓴다)
 demo-data/   캡처해둔 실제 백엔드 응답. 테스트와 데모 배포가 같이 쓴다
 scripts/     demo-data를 정적 API로 펼치는 빌드 스크립트
 tests/       Playwright 스펙

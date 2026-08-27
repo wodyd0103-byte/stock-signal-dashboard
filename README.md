@@ -229,8 +229,9 @@ cd backend
 cd frontend
 npm run format:check   # Prettier. 고칠 때는 npm run format
 npm run lint           # ESLint
+npm test               # vitest. 훅·컴포넌트 단위. 브라우저 없이 2초
 npm run build          # 타입 체크 포함
-npx playwright test    # 레이아웃·요청 수·접근성. 백엔드 없이 돈다
+npx playwright test    # 레이아웃·CLS·요청 수·접근성. 백엔드 없이 돈다
 ```
 
 `cd frontend && npm install`이 `.githooks`를 커밋 훅으로 등록하므로, 포맷이 어긋난 커밋은 CI까지 가기 전에 로컬에서 막힙니다. 수동 등록은 `npm run hooks:install`, 우회는 `git commit --no-verify`입니다.
